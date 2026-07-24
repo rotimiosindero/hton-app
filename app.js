@@ -132,7 +132,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.3.21';
+  const APP_VERSION = '0.3.23';
 
   function showGridView(){
     document.getElementById('gridScroll').style.display = '';
