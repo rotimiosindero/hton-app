@@ -184,10 +184,24 @@
 
   // ---------- Search ----------
   const searchInput = document.getElementById('searchInput');
+  const searchWrap = document.querySelector('.search-wrap');
+  const searchClear = document.getElementById('searchClear');
+  function clearSearch(){
+    searchInput.value = '';
+    searchTerm = '';
+    searchWrap.classList.remove('has-text');
+    searchInput.blur();
+    render();
+  }
   searchInput.addEventListener('input', e=>{
     searchTerm = e.target.value.trim().toLowerCase();
+    searchWrap.classList.toggle('has-text', e.target.value.length > 0);
     render();
   });
+  searchInput.addEventListener('keydown', e=>{
+    if(e.key === 'Escape') clearSearch();
+  });
+  searchClear.addEventListener('click', clearSearch);
 
   function setDetail(html){
     document.getElementById('detailBar').innerHTML = html;
@@ -356,14 +370,29 @@
       b.classList.remove('match','dim');
       if(!searchTerm) return;
       const isMatch = b.dataset.name.includes(searchTerm);
-      if(isMatch){ b.classList.add('match'); totalMatches++; if(!firstMatchEl) firstMatchEl = b; }
+      if(isMatch){
+        b.classList.add('match');
+        totalMatches++;
+        if(!firstMatchEl && b.closest('#gridInner')) firstMatchEl = b;
+      }
       else { b.classList.add('dim'); }
     });
     if(searchTerm){
       setDetail(totalMatches
         ? `${totalMatches} match${totalMatches===1?'':'es'} for "${searchTerm}" across the weekend`
         : `No matches for "${searchTerm}"`);
-      if(firstMatchEl) firstMatchEl.scrollIntoView({behavior:'smooth', inline:'center', block:'center'});
+      if(firstMatchEl){
+        const gs = document.getElementById('gridScroll');
+        const gsRect = gs.getBoundingClientRect();
+        const elRect = firstMatchEl.getBoundingClientRect();
+        const targetLeft = parseFloat(firstMatchEl.style.left) + LABEL_W;
+        const targetTop = gs.scrollTop + (elRect.top - gsRect.top) - (gsRect.height/2 - elRect.height/2);
+        showGridView();
+        // 12 minutes of empty timeline visible before the match's start, in the space
+        // actually visible past the sticky stage-label column (not hidden behind it).
+        const searchPreRollPx = (6/60) * PX_PER_HOUR;
+        gs.scrollTo({left: Math.max(targetLeft - searchPreRollPx - LABEL_W, 0), top: Math.max(targetTop, 0), behavior:'smooth'});
+      }
     } else if(document.activeElement !== searchInput){
       setDetail('Hover or tap a set for details');
     }
