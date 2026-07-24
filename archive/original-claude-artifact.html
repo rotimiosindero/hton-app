@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Houghton 26 — Timetable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1310;
+    --bg-raised:#151C17;
+    --bg-card:#182019;
+    --line:#2B342D;
+    --line-strong:#3A463D;
+    --text:#F1EDE2;
+    --text-muted:#8FA091;
+    --text-faint:#5C6A5F;
+    --amber:#E8A23D;
+    --forest:#3E5A45;
+    --dusk:#C97B63;
+    --label-w:132px;
+    --row-h:60px;
+    --px-per-hour:140px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .dawnbar{ height:4px; width:100%;
+    background:linear-gradient(90deg,#1a2b1f 0%, var(--forest) 30%, var(--amber) 65%, #f3c98a 100%); }
+  header{
+    background:var(--bg); border-bottom:1px solid var(--line);
+    padding:16px 20px 0 20px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--text-faint); margin:0 0 4px 0;
+  }
+  h1{
+    font-family:'Anton',sans-serif; font-weight:400; letter-spacing:0.02em;
+    font-size:clamp(24px,4.5vw,36px); margin:0 0 12px 0; text-transform:uppercase;
+  }
+  h1 span{color:var(--amber);}
+  .toprow{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-bottom:10px; }
+  .tabs{ display:flex; gap:4px; }
+  .tab{
+    font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; letter-spacing:0.04em;
+    text-transform:uppercase; background:none; border:none; cursor:pointer; color:var(--text-muted);
+    padding:9px 13px 11px 13px; border-bottom:2px solid transparent; transition:color .15s, border-color .15s;
+  }
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--amber); border-bottom-color:var(--amber);}
+  .controls{ display:flex; gap:10px; align-items:center; }
+  input[type="search"]{
+    background:var(--bg-raised); border:1px solid var(--line); color:var(--text);
+    font-family:'Inter',sans-serif; font-size:14px; padding:9px 12px; border-radius:8px; width:190px; outline:none;
+  }
+  input[type="search"]::placeholder{color:var(--text-faint);}
+  input[type="search"]:focus{border-color:var(--amber);}
+  .notesbtn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13px; background:var(--bg-raised); color:var(--text);
+    border:1px solid var(--line); padding:9px 14px; border-radius:8px; cursor:pointer;
+    display:flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .notesbtn:hover{border-color:var(--amber); color:var(--amber);}
+  .notecount{ background:var(--amber); color:#241a0a; font-size:11px; font-weight:700; border-radius:20px; padding:1px 7px; font-family:'JetBrains Mono',monospace; }
+
+  .detailbar{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-muted);
+    padding:10px 20px; border-bottom:1px solid var(--line); background:var(--bg-raised);
+    min-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .detailbar strong{ color:var(--amber); font-weight:600; }
+
+  .gridscroll{
+    overflow:auto;
+    max-height:calc(100vh - 168px);
+    position:relative;
+    cursor:grab;
+  }
+  .gridscroll.dragging{ cursor:grabbing; user-select:none; }
+  .gridinner{ position:relative; }
+
+  .corner{
+    position:sticky; top:0; left:0; z-index:15;
+    width:var(--label-w); height:40px;
+    background:var(--bg); border-bottom:1px solid var(--line-strong); border-right:1px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em;
+  }
+  .ruler{
+    position:sticky; top:0; z-index:8; height:40px;
+    margin-left:var(--label-w);
+    background:var(--bg); border-bottom:1px solid var(--line-strong);
+  }
+  .tick{
+    position:absolute; top:0; height:100%; border-left:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint);
+    padding-left:5px; padding-top:11px; white-space:nowrap;
+  }
+  .tick.daybreak{ border-left:1px solid var(--amber); color:var(--amber); font-weight:600; }
+
+  .stagerow{ display:flex; height:var(--row-h); border-bottom:1px solid var(--line); }
+  .stagerow:nth-child(odd) .lane{ background:rgba(255,255,255,0.012); }
+  .stagelabel{
+    position:sticky; left:0; z-index:6; width:var(--label-w); flex-shrink:0;
+    background:var(--bg); border-right:1px solid var(--line-strong);
+    display:flex; align-items:center; padding:0 12px;
+    font-family:'Anton',sans-serif; font-weight:400; font-size:13.5px; text-transform:uppercase; letter-spacing:0.01em;
+    color:var(--text);
+  }
+  .stagelabel.empty{ color:var(--text-faint); }
+  .lane{ position:relative; flex:none; height:100%; background-image:var(--gridlines); }
+
+  .block{
+    position:absolute; top:6px; bottom:6px;
+    border-radius:6px; overflow:hidden; padding:4px 7px;
+    font-size:12px; line-height:1.25; color:#12160f; font-weight:600;
+    cursor:pointer; transition:filter .1s ease, outline-color .1s ease;
+    outline:2px solid transparent; outline-offset:1px;
+    white-space:nowrap; text-overflow:ellipsis;
+  }
+  .block:hover, .block:focus-visible{ filter:brightness(1.12); z-index:2; }
+  .block.match{ outline-color:var(--amber); }
+  .block.dim{ opacity:0.28; }
+  .block.tiny{ padding:0; }
+
+  .empty-note{
+    position:absolute; top:50%; left:14px; transform:translateY(-50%);
+    font-size:12.5px; color:var(--text-faint); font-style:italic; white-space:nowrap;
+  }
+
+  /* Notes panel */
+  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:30; }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+  .panel{
+    position:fixed; top:0; right:0; height:100%; width:min(360px,90vw);
+    background:var(--bg-raised); border-left:1px solid var(--line);
+    transform:translateX(100%); transition:transform .25s ease; z-index:31;
+    display:flex; flex-direction:column;
+  }
+  .panel.open{ transform:translateX(0); }
+  .panel-head{ padding:18px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
+  .panel-head h2{ font-family:'Anton',sans-serif; font-weight:400; text-transform:uppercase; font-size:20px; margin:0; color:var(--amber); }
+  .closebtn{ background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; line-height:1; }
+  .closebtn:hover{ color:var(--text); }
+  .panel-body{ padding:16px 18px; overflow-y:auto; flex:1; }
+  .panel-sub{ font-size:12.5px; color:var(--text-muted); margin:0 0 16px 0; line-height:1.5; }
+  .note-item{ background:var(--bg-card); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:10px; }
+  .note-meta{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .note-tag{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--dusk); font-weight:600; }
+  .note-actions button{ background:none; border:none; color:var(--text-faint); cursor:pointer; font-size:12px; margin-left:8px; }
+  .note-actions button:hover{ color:var(--amber); }
+  .note-text{ font-size:13.5px; line-height:1.4; }
+  .addform{ margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
+  .addform label{ display:block; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); margin:10px 0 4px 0; }
+  .addform select, .addform input, .addform textarea{
+    width:100%; background:var(--bg-card); border:1px solid var(--line); color:var(--text);
+    font-family:'Inter',sans-serif; font-size:13.5px; padding:8px 10px; border-radius:6px; outline:none;
+  }
+  .addform select:focus, .addform input:focus, .addform textarea:focus{ border-color:var(--amber); }
+  .addform textarea{ resize:vertical; min-height:56px; }
+  .addbtn{ margin-top:12px; width:100%; background:var(--amber); color:#241a0a; border:none; font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px; padding:10px; border-radius:6px; cursor:pointer; }
+  .addbtn:hover{ filter:brightness(1.08); }
+  .empty-notes{ color:var(--text-faint); font-size:13px; font-style:italic; }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:5px; }
+  ::-webkit-scrollbar-track{ background:var(--bg); }
+
+  @media (max-width:600px){
+    :root{ --label-w:100px; --row-h:52px; --px-per-hour:110px; }
+    .controls{ width:100%; }
+    input[type="search"]{ flex:1; width:auto; }
+  }
+</style>
+</head>
+<body>
+<div class="dawnbar"></div>
+<header>
+  <p class="eyebrow">Unofficial · personal build · scroll sideways through the day</p>
+  <h1>Houghton <span>26</span></h1>
+  <div class="toprow">
+    <div class="tabs" id="dayTabs"></div>
+    <div class="controls">
+      <input type="search" id="searchInput" placeholder="Search an act…" />
+      <button class="notesbtn" id="notesToggle">Notes <span class="notecount" id="noteCount">0</span></button>
+    </div>
+  </div>
+</header>
+
+<div class="detailbar" id="detailBar">Hover or tap a set for details</div>
+
+<div class="gridscroll" id="gridScroll">
+  <div class="gridinner" id="gridInner"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="panel" id="notesPanel">
+  <div class="panel-head">
+    <h2>Notes</h2>
+    <button class="closebtn" id="closePanel">&times;</button>
+  </div>
+  <div class="panel-body">
+    <p class="panel-sub">Personal reminders for the weekend, eat, sleep, queue times, meet-ups, whatever's useful. These aren't acts, just notes to yourself. Stored on this device.</p>
+    <div id="notesList"></div>
+    <div class="addform">
+      <label for="noteDay">Day</label>
+      <select id="noteDay"></select>
+      <label for="noteTime">Time (optional)</label>
+      <input type="text" id="noteTime" placeholder="e.g. 17:30" />
+      <label for="noteText">Note</label>
+      <textarea id="noteText" placeholder="e.g. Eat before the queue builds up"></textarea>
+      <button class="addbtn" id="addNoteBtn">Add note</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const HTON_DATA = {"stages": ["Derren Smart", "Pinters", "Warehouse", "The Quarry", "Pavilion", "Earthling", "Outburst", "Terminus", "Stallions", "Gramophone", "Giant Steps", "Lake/Orchard", "Armadilo"], "days": ["Thursday", "Friday", "Saturday", "Sunday"], "entries": [{"name": "Harri Pepper", "stage": "Derren Smart", "day": "Thursday", "begin": "17:00", "end": "20:00"}, {"name": "Ste Roberts", "stage": "Derren Smart", "day": "Thursday", "begin": "20:00", "end": "22:30"}, {"name": "Radioactive Man (Live)", "stage": "Derren Smart", "day": "Thursday", "begin": "22:30", "end": "00:30"}, {"name": "Adam Shelton", "stage": "Earthling", "day": "Thursday", "begin": "17:00", "end": "20:00"}, {"name": "Wayne Holland", "stage": "Earthling", "day": "Thursday", "begin": "20:00", "end": "23:00"}, {"name": "Felix Dickinson", "stage": "Earthling", "day": "Thursday", "begin": "23:00", "end": "02:00"}, {"name": "Amit & Aneesh", "stage": "Giant Steps", "day": "Thursday", "begin": "17:00", "end": "18:00"}, {"name": "Dj Himitsu", "stage": "Giant Steps", "day": "Thursday", "begin": "18:00", "end": "20:00"}, {"name": "Cameron Cullen", "stage": "Giant Steps", "day": "Thursday", "begin": "20:00", "end": "22:00"}, {"name": "Jonas Robinson", "stage": "Giant Steps", "day": "Thursday", "begin": "22:00", "end": "00:00"}, {"name": "Juan Blanco", "stage": "Giant Steps", "day": "Thursday", "begin": "00:00", "end": "02:00"}, {"name": "Oli Silva", "stage": "Gramophone", "day": "Thursday", "begin": "17:00", "end": "20:00"}, {"name": "Om Unit", "stage": "Gramophone", "day": "Thursday", "begin": "20:00", "end": "23:00"}, {"name": "Optimo", "stage": "Gramophone", "day": "Thursday", "begin": "23:00", "end": "02:00"}, {"name": "Bas Ibellini", "stage": "Outburst", "day": "Thursday", "begin": "17:00", "end": "20:00"}, {"name": "Willow", "stage": "Outburst", "day": "Thursday", "begin": "20:00", "end": "23:00"}, {"name": "Vera", "stage": "Outburst", "day": "Thursday", "begin": "23:00", "end": "02:00"}, {"name": "Marry McCanna", "stage": "Pavilion", "day": "Thursday", "begin": "17:00", "end": "20:00"}, {"name": "Dan Andrei", "stage": "Pavilion", "day": "Thursday", "begin": "20:00", "end": "23:00"}, {"name": "Sonja Moonear", "stage": "Pavilion", "day": "Thursday", "begin": "23:00", "end": "02:00"}, {"name": "Jake Manders", "stage": "Stallions", "day": "Thursday", "begin": "17:00", "end": "20:00"}, {"name": "Dr Horn", "stage": "Stallions", "day": "Thursday", "begin": "20:00", "end": "23:00"}, {"name": "Doc Martin", "stage": "Stallions", "day": "Thursday", "begin": "23:00", "end": "02:00"}, {"name": "Adam Curtain", "stage": "The Quarry", "day": "Thursday", "begin": "17:00", "end": "20:00"}, {"name": "Gabriel Rai", "stage": "The Quarry", "day": "Thursday", "begin": "20:00", "end": "23:00"}, {"name": "Chez De Milo", "stage": "The Quarry", "day": "Thursday", "begin": "23:00", "end": "02:00"}, {"name": "Electro Elvis", "stage": "Warehouse", "day": "Thursday", "begin": "17:00", "end": "19:00"}, {"name": "Alex Downey", "stage": "Warehouse", "day": "Thursday", "begin": "19:00", "end": "22:00"}, {"name": "Nullptr (Live)", "stage": "Warehouse", "day": "Thursday", "begin": "22:00", "end": "23:00"}, {"name": "Billy Nasty", "stage": "Warehouse", "day": "Thursday", "begin": "23:00", "end": "01:00"}, {"name": "Active Systems", "stage": "Warehouse", "day": "Thursday", "begin": "01:00", "end": "02:00"}, {"name": "Jake Manders", "stage": "Armadilo", "day": "Friday", "begin": "11:00", "end": "12:00"}, {"name": "Talk: Dezeen in conversation with Cella", "stage": "Armadilo", "day": "Friday", "begin": "12:00", "end": "13:00"}, {"name": "Midland (Ambient Set", "stage": "Armadilo", "day": "Friday", "begin": "13:00", "end": "14:00"}, {"name": "Talk: Ryan Gander with Craig Richards", "stage": "Armadilo", "day": "Friday", "begin": "14:00", "end": "15:00"}, {"name": "Vera", "stage": "Armadilo", "day": "Friday", "begin": "15:00", "end": "16:00"}, {"name": "Talk: RA Playing Favourites with Jane", "stage": "Armadilo", "day": "Friday", "begin": "16:00", "end": "17:00"}, {"name": "Gabriel Rai", "stage": "Armadilo", "day": "Friday", "begin": "17:00", "end": "18:00"}, {"name": "Baby Culture & E/Tape", "stage": "Armadilo", "day": "Friday", "begin": "18:00", "end": "19:00"}, {"name": "Hamish & Toby", "stage": "Derren Smart", "day": "Friday", "begin": "12:00", "end": "15:00"}, {"name": "Moxie", "stage": "Derren Smart", "day": "Friday", "begin": "15:00", "end": "17:30"}, {"name": "Midland", "stage": "Derren Smart", "day": "Friday", "begin": "17:30", "end": "20:00"}, {"name": "Jorg Kunig (Live)", "stage": "Derren Smart", "day": "Friday", "begin": "20:00", "end": "21:00"}, {"name": "Call Super", "stage": "Derren Smart", "day": "Friday", "begin": "21:00", "end": "23:30"}, {"name": "Josh Caffe (Live)", "stage": "Derren Smart", "day": "Friday", "begin": "23:30", "end": "00:30"}, {"name": "Sedef Adasi", "stage": "Derren Smart", "day": "Friday", "begin": "00:30", "end": "03:00"}, {"name": "Bas Ibellini", "stage": "Earthling", "day": "Friday", "begin": "12:00", "end": "14:00"}, {"name": "Johnny Rock", "stage": "Earthling", "day": "Friday", "begin": "14:00", "end": "16:00"}, {"name": "Rob Mello", "stage": "Earthling", "day": "Friday", "begin": "16:00", "end": "19:00"}, {"name": "Remi Mazet (Live)", "stage": "Earthling", "day": "Friday", "begin": "19:00", "end": "20:00"}, {"name": "H Foundation (HIPP-E & Halo)", "stage": "Earthling", "day": "Friday", "begin": "20:00", "end": "23:00"}, {"name": "Doc Martin", "stage": "Earthling", "day": "Friday", "begin": "23:00", "end": "02:00"}, {"name": "Raresh", "stage": "Earthling", "day": "Friday", "begin": "02:00", "end": "05:00"}, {"name": "Harri Pepper", "stage": "Giant Steps", "day": "Friday", "begin": "12:00", "end": "14:00"}, {"name": "Bill Brewster", "stage": "Giant Steps", "day": "Friday", "begin": "14:00", "end": "16:00"}, {"name": "Josh T & Dr Banana", "stage": "Giant Steps", "day": "Friday", "begin": "16:00", "end": "18:00"}, {"name": "Dave Harvey", "stage": "Giant Steps", "day": "Friday", "begin": "18:00", "end": "20:00"}, {"name": "Tristan Da Cunha", "stage": "Giant Steps", "day": "Friday", "begin": "20:00", "end": "22:00"}, {"name": "Kay Suzuki", "stage": "Giant Steps", "day": "Friday", "begin": "22:00", "end": "00:00"}, {"name": "Reda", "stage": "Giant Steps", "day": "Friday", "begin": "00:00", "end": "02:00"}, {"name": "Claude", "stage": "Giant Steps", "day": "Friday", "begin": "02:00", "end": "04:00"}, {"name": "Fabien", "stage": "Giant Steps", "day": "Friday", "begin": "04:00", "end": "06:00"}, {"name": "Scott Pelloux", "stage": "Giant Steps", "day": "Friday", "begin": "06:00", "end": "08:00"}, {"name": "Cameron", "stage": "Giant Steps", "day": "Friday", "begin": "08:00", "end": "09:00"}, {"name": "Jonny Rock", "stage": "Gramophone", "day": "Friday", "begin": "10:00", "end": "12:00"}, {"name": "Kem", "stage": "Gramophone", "day": "Friday", "begin": "12:00", "end": "14:00"}, {"name": "Kay Suzuki", "stage": "Gramophone", "day": "Friday", "begin": "14:00", "end": "16:00"}, {"name": "Manasseh", "stage": "Gramophone", "day": "Friday", "begin": "16:00", "end": "18:00"}, {"name": "Aba Shanti-i", "stage": "Gramophone", "day": "Friday", "begin": "18:00", "end": "21:00"}, {"name": "Prince Fatty, Horesman, Lian Bailey, Ignition High Power & Mr Williamz", "stage": "Gramophone", "day": "Friday", "begin": "21:00", "end": "01:00"}, {"name": "Deadbeat (DJ Set)", "stage": "Gramophone", "day": "Friday", "begin": "01:00", "end": "02:00"}, {"name": "Om Unit Presents Acid Dub Studies", "stage": "Gramophone", "day": "Friday", "begin": "02:00", "end": "03:00"}, {"name": "Simo Cell (Dub Set)", "stage": "Gramophone", "day": "Friday", "begin": "03:00", "end": "04:00"}, {"name": "Al Wooton (Live)", "stage": "Gramophone", "day": "Friday", "begin": "04:00", "end": "05:30"}, {"name": "O.Bee & Tomas Station", "stage": "Gramophone", "day": "Friday", "begin": "08:00", "end": "09:00"}, {"name": "Kyle Toole", "stage": "Outburst", "day": "Friday", "begin": "12:00", "end": "15:00"}, {"name": "Aoki Takamasa", "stage": "Outburst", "day": "Friday", "begin": "15:00", "end": "18:00"}, {"name": "Deadbeat (Live)", "stage": "Outburst", "day": "Friday", "begin": "18:00", "end": "19:00"}, {"name": "O.Bee", "stage": "Outburst", "day": "Friday", "begin": "19:00", "end": "22:00"}, {"name": "Melchoir Productions Ltd (Live)", "stage": "Outburst", "day": "Friday", "begin": "22:00", "end": "23:00"}, {"name": "Margaret Dygas", "stage": "Outburst", "day": "Friday", "begin": "23:00", "end": "02:00"}, {"name": "XDB", "stage": "Outburst", "day": "Friday", "begin": "02:00", "end": "05:00"}, {"name": "Craig Richard (Reggae Set)", "stage": "Pavilion", "day": "Friday", "begin": "11:00", "end": "12:00"}, {"name": "Channel One", "stage": "Pavilion", "day": "Friday", "begin": "12:00", "end": "14:00"}, {"name": "Luke Una", "stage": "Pavilion", "day": "Friday", "begin": "14:00", "end": "17:00"}, {"name": "Peach", "stage": "Pavilion", "day": "Friday", "begin": "17:00", "end": "20:00"}, {"name": "Dresden", "stage": "Pavilion", "day": "Friday", "begin": "20:00", "end": "23:00"}, {"name": "Matthew Jonson (Live)", "stage": "Pavilion", "day": "Friday", "begin": "23:00", "end": "00:30"}, {"name": "Craig Richards", "stage": "Pavilion", "day": "Friday", "begin": "00:30", "end": "03:30"}, {"name": "Reptant (Live)", "stage": "Pavilion", "day": "Friday", "begin": "03:30", "end": "04:30"}, {"name": "Rhadoo", "stage": "Pavilion", "day": "Friday", "begin": "04:30", "end": "08:00"}, {"name": "Patrick Rowe", "stage": "Pinters", "day": "Friday", "begin": "10:00", "end": "13:00"}, {"name": "Maguire (Live)", "stage": "Pinters", "day": "Friday", "begin": "13:00", "end": "14:00"}, {"name": "Jenny Jen", "stage": "Pinters", "day": "Friday", "begin": "14:00", "end": "15:00"}, {"name": "Greg Paulus (Live)", "stage": "Pinters", "day": "Friday", "begin": "15:00", "end": "16:00"}, {"name": "Al Wooton (DJ Set)", "stage": "Pinters", "day": "Friday", "begin": "16:00", "end": "17:00"}, {"name": "Peter Adjaye (Live)", "stage": "Pinters", "day": "Friday", "begin": "17:00", "end": "18:00"}, {"name": "Kian OK", "stage": "Pinters", "day": "Friday", "begin": "18:00", "end": "19:00"}, {"name": "Holy Tongue (Live)", "stage": "Pinters", "day": "Friday", "begin": "19:00", "end": "20:00"}, {"name": "Kyle Toole", "stage": "Pinters", "day": "Friday", "begin": "20:00", "end": "21:00"}, {"name": "Nidia & Valentina (Live)", "stage": "Pinters", "day": "Friday", "begin": "21:00", "end": "22:00"}, {"name": "Optimo", "stage": "Pinters", "day": "Friday", "begin": "22:00", "end": "23:00"}, {"name": "Awkward Moments (Live)", "stage": "Pinters", "day": "Friday", "begin": "23:00", "end": "00:30"}, {"name": "Jenny Jen", "stage": "Stallions", "day": "Friday", "begin": "10:00", "end": "12:30"}, {"name": "Itchy Rich", "stage": "Stallions", "day": "Friday", "begin": "12:30", "end": "15:00"}, {"name": "Phil Smart", "stage": "Stallions", "day": "Friday", "begin": "15:00", "end": "18:00"}, {"name": "Shay Malt", "stage": "Stallions", "day": "Friday", "begin": "18:00", "end": "21:00"}, {"name": "Dan Beaumont", "stage": "Stallions", "day": "Friday", "begin": "21:00", "end": "00:00"}, {"name": "Gideon", "stage": "Stallions", "day": "Friday", "begin": "00:00", "end": "03:00"}, {"name": "Grace Sands", "stage": "Stallions", "day": "Friday", "begin": "03:00", "end": "06:00"}, {"name": "Hamish Toby & XDB", "stage": "Stallions", "day": "Friday", "begin": "06:00", "end": "09:00"}, {"name": "Anna Wall", "stage": "The Quarry", "day": "Friday", "begin": "12:00", "end": "15:00"}, {"name": "Bruno Schmidt", "stage": "The Quarry", "day": "Friday", "begin": "15:00", "end": "17:30"}, {"name": "Adi", "stage": "The Quarry", "day": "Friday", "begin": "17:30", "end": "20:00"}, {"name": "Enrica Falqui", "stage": "The Quarry", "day": "Friday", "begin": "20:00", "end": "23:00"}, {"name": "Bobby.", "stage": "The Quarry", "day": "Friday", "begin": "23:00", "end": "02:00"}, {"name": "Binh", "stage": "The Quarry", "day": "Friday", "begin": "02:00", "end": "05:00"}, {"name": "Ario", "stage": "Warehouse", "day": "Friday", "begin": "12:00", "end": "15:00"}, {"name": "Axis 89 (Live)", "stage": "Warehouse", "day": "Friday", "begin": "15:00", "end": "16:00"}, {"name": "CCL", "stage": "Warehouse", "day": "Friday", "begin": "16:00", "end": "18:30"}, {"name": "Simo Cell (Live)", "stage": "Warehouse", "day": "Friday", "begin": "18:30", "end": "19:30"}, {"name": "Fadi Mohem", "stage": "Warehouse", "day": "Friday", "begin": "19:30", "end": "22:00"}, {"name": "RHYW", "stage": "Warehouse", "day": "Friday", "begin": "22:00", "end": "00:00"}, {"name": "Sepehr (Live)", "stage": "Warehouse", "day": "Friday", "begin": "00:00", "end": "01:00"}, {"name": "Pariah", "stage": "Warehouse", "day": "Friday", "begin": "01:00", "end": "03:00"}, {"name": "Objekt", "stage": "Warehouse", "day": "Friday", "begin": "03:00", "end": "05:00"}, {"name": "Bobby.", "stage": "Armadilo", "day": "Saturday", "begin": "11:00", "end": "13:00"}, {"name": "Prosumer", "stage": "Armadilo", "day": "Saturday", "begin": "13:00", "end": "15:00"}, {"name": "Roman Flugel", "stage": "Armadilo", "day": "Saturday", "begin": "15:00", "end": "17:00"}, {"name": "Maybe Laura", "stage": "Armadilo", "day": "Saturday", "begin": "17:00", "end": "19:00"}, {"name": "Ario", "stage": "Armadilo", "day": "Saturday", "begin": "19:00", "end": "19:30"}, {"name": "Harry McCanna", "stage": "Derren Smart", "day": "Saturday", "begin": "12:00", "end": "15:00"}, {"name": "Saoirse", "stage": "Derren Smart", "day": "Saturday", "begin": "15:00", "end": "18:00"}, {"name": "Shanti Celeste", "stage": "Derren Smart", "day": "Saturday", "begin": "18:00", "end": "21:00"}, {"name": "Underground Resistance Presents Depth", "stage": "Derren Smart", "day": "Saturday", "begin": "21:00", "end": "22:30"}, {"name": "Craig Richards", "stage": "Derren Smart", "day": "Saturday", "begin": "22:30", "end": "02:00"}, {"name": "Decius Live", "stage": "Derren Smart", "day": "Saturday", "begin": "02:00", "end": "03:30"}, {"name": "Tristan Da Cunha", "stage": "Earthling", "day": "Saturday", "begin": "12:00", "end": "15:00"}, {"name": "Gabriel Kwarteng", "stage": "Earthling", "day": "Saturday", "begin": "15:00", "end": "18:00"}, {"name": "Paramida", "stage": "Earthling", "day": "Saturday", "begin": "18:00", "end": "21:00"}, {"name": "Frank Haag (Live)", "stage": "Earthling", "day": "Saturday", "begin": "21:00", "end": "22:30"}, {"name": "FDG", "stage": "Earthling", "day": "Saturday", "begin": "22:30", "end": "01:30"}, {"name": "Jane Fitz", "stage": "Earthling", "day": "Saturday", "begin": "01:30", "end": "05:00"}, {"name": "Cameron", "stage": "Giant Steps", "day": "Saturday", "begin": "09:00", "end": "10:00"}, {"name": "Kian OK", "stage": "Giant Steps", "day": "Saturday", "begin": "10:00", "end": "12:00"}, {"name": "Kyle Toole", "stage": "Giant Steps", "day": "Saturday", "begin": "12:00", "end": "14:00"}, {"name": "Wayne Holland", "stage": "Giant Steps", "day": "Saturday", "begin": "14:00", "end": "16:00"}, {"name": "Nicolas Matar", "stage": "Giant Steps", "day": "Saturday", "begin": "16:00", "end": "18:00"}, {"name": "Felix Dickinson", "stage": "Giant Steps", "day": "Saturday", "begin": "18:00", "end": "20:00"}, {"name": "Eliphino", "stage": "Giant Steps", "day": "Saturday", "begin": "20:00", "end": "22:00"}, {"name": "Krishan", "stage": "Giant Steps", "day": "Saturday", "begin": "22:00", "end": "00:00"}, {"name": "Belle Bete", "stage": "Giant Steps", "day": "Saturday", "begin": "00:00", "end": "02:00"}, {"name": "Cedric Woo", "stage": "Giant Steps", "day": "Saturday", "begin": "02:00", "end": "04:00"}, {"name": "Aneesh", "stage": "Giant Steps", "day": "Saturday", "begin": "04:00", "end": "06:00"}, {"name": "Amit", "stage": "Giant Steps", "day": "Saturday", "begin": "06:00", "end": "08:00"}, {"name": "Juan Blanco", "stage": "Giant Steps", "day": "Saturday", "begin": "08:00", "end": "09:00"}, {"name": "O.Bee & Tomas Station", "stage": "Gramophone", "day": "Saturday", "begin": "09:00", "end": "11:00"}, {"name": "Peach (R&B Set)", "stage": "Gramophone", "day": "Saturday", "begin": "11:00", "end": "13:00"}, {"name": "Radioactive Man (Reggae Set)", "stage": "Gramophone", "day": "Saturday", "begin": "13:00", "end": "14:00"}, {"name": "Uncle Al & Sherman", "stage": "Gramophone", "day": "Saturday", "begin": "14:00", "end": "17:00"}, {"name": "Tokyo Riddim Band", "stage": "Gramophone", "day": "Saturday", "begin": "17:00", "end": "18:00"}, {"name": "Gideon (reggae set)", "stage": "Gramophone", "day": "Saturday", "begin": "18:00", "end": "20:00"}, {"name": "Donna Leake", "stage": "Gramophone", "day": "Saturday", "begin": "20:00", "end": "22:00"}, {"name": "Scientist (Live)", "stage": "Gramophone", "day": "Saturday", "begin": "22:00", "end": "23:00"}, {"name": "Mark Ernestus & Tikiman", "stage": "Gramophone", "day": "Saturday", "begin": "23:00", "end": "01:00"}, {"name": "Calibre", "stage": "Gramophone", "day": "Saturday", "begin": "01:00", "end": "03:00"}, {"name": "Nidia", "stage": "Gramophone", "day": "Saturday", "begin": "03:00", "end": "08:00"}, {"name": "Kyle Toole & Kian OK", "stage": "Gramophone", "day": "Saturday", "begin": "08:00", "end": "09:00"}, {"name": "Melina Serser", "stage": "Outburst", "day": "Saturday", "begin": "12:00", "end": "16:00"}, {"name": "Vlada", "stage": "Outburst", "day": "Saturday", "begin": "16:00", "end": "19:00"}, {"name": "Konduku", "stage": "Outburst", "day": "Saturday", "begin": "19:00", "end": "22:00"}, {"name": "Peverelist", "stage": "Outburst", "day": "Saturday", "begin": "22:00", "end": "23:00"}, {"name": "Roman Flugel", "stage": "Outburst", "day": "Saturday", "begin": "23:00", "end": "02:00"}, {"name": "Ivan Smagghe", "stage": "Outburst", "day": "Saturday", "begin": "02:00", "end": "05:00"}, {"name": "The Ghost", "stage": "Pavilion", "day": "Saturday", "begin": "12:00", "end": "15:00"}, {"name": "Gene on Earth", "stage": "Pavilion", "day": "Saturday", "begin": "15:00", "end": "18:00"}, {"name": "Dominic Capello", "stage": "Pavilion", "day": "Saturday", "begin": "18:00", "end": "21:00"}, {"name": "Mathew Jonson & .VRIL (Live)", "stage": "Pavilion", "day": "Saturday", "begin": "21:00", "end": "22:30"}, {"name": "Sugar Free", "stage": "Pavilion", "day": "Saturday", "begin": "22:30", "end": "01:30"}, {"name": "Aurora Halal", "stage": "Pavilion", "day": "Saturday", "begin": "01:30", "end": "04:30"}, {"name": "DJ Masda", "stage": "Pavilion", "day": "Saturday", "begin": "04:30", "end": "08:00"}, {"name": "Joff (Truth & Lies)", "stage": "Pinters", "day": "Saturday", "begin": "10:00", "end": "11:00"}, {"name": "Robert Mitchell (Live Solo Piano)", "stage": "Pinters", "day": "Saturday", "begin": "11:00", "end": "12:00"}, {"name": "Truth & Lies (Ex-Friendly)", "stage": "Pinters", "day": "Saturday", "begin": "12:00", "end": "13:00"}, {"name": "Elijah Minelli (Live)", "stage": "Pinters", "day": "Saturday", "begin": "13:00", "end": "14:00"}, {"name": "Truth & Lies", "stage": "Pinters", "day": "Saturday", "begin": "14:00", "end": "15:00"}, {"name": "Sven Hammond", "stage": "Pinters", "day": "Saturday", "begin": "15:00", "end": "16:00"}, {"name": "Craig Richards", "stage": "Pinters", "day": "Saturday", "begin": "16:00", "end": "17:00"}, {"name": "Reggie Watts", "stage": "Pinters", "day": "Saturday", "begin": "17:00", "end": "18:00"}, {"name": "Carl H", "stage": "Pinters", "day": "Saturday", "begin": "18:00", "end": "19:00"}, {"name": "Brighde Chaimbeul (Live)", "stage": "Pinters", "day": "Saturday", "begin": "19:00", "end": "20:00"}, {"name": "Vlada", "stage": "Pinters", "day": "Saturday", "begin": "20:00", "end": "21:00"}, {"name": "Samuel Rohrer (Live)", "stage": "Pinters", "day": "Saturday", "begin": "21:00", "end": "22:00"}, {"name": "Amit & Aneesh", "stage": "Pinters", "day": "Saturday", "begin": "22:00", "end": "23:00"}, {"name": "Nik Bartsch's Ronin (Live)", "stage": "Pinters", "day": "Saturday", "begin": "23:00", "end": "00:00"}, {"name": "Jane Fitz & Paquita Gordon", "stage": "Stallions", "day": "Saturday", "begin": "09:00", "end": "12:00"}, {"name": "Renata", "stage": "Stallions", "day": "Saturday", "begin": "13:00", "end": "15:00"}, {"name": "Jonny Rock", "stage": "Stallions", "day": "Saturday", "begin": "15:00", "end": "18:00"}, {"name": "Rob Mello", "stage": "Stallions", "day": "Saturday", "begin": "18:00", "end": "21:00"}, {"name": "Luke Una", "stage": "Stallions", "day": "Saturday", "begin": "21:00", "end": "00:00"}, {"name": "Chez Demier", "stage": "Stallions", "day": "Saturday", "begin": "00:00", "end": "03:00"}, {"name": "Prosumer", "stage": "Stallions", "day": "Saturday", "begin": "03:00", "end": "06:00"}, {"name": "Desyn", "stage": "Stallions", "day": "Saturday", "begin": "06:00", "end": "09:00"}, {"name": "Oli Silva", "stage": "The Quarry", "day": "Saturday", "begin": "12:00", "end": "15:00"}, {"name": "Lola Haro", "stage": "The Quarry", "day": "Saturday", "begin": "15:00", "end": "18:00"}, {"name": "Dave Harvey", "stage": "The Quarry", "day": "Saturday", "begin": "18:00", "end": "21:00"}, {"name": "Carl H", "stage": "The Quarry", "day": "Saturday", "begin": "21:00", "end": "00:00"}, {"name": "Lake Haze (Live)", "stage": "The Quarry", "day": "Saturday", "begin": "00:00", "end": "01:00"}, {"name": "Unai Trotti", "stage": "The Quarry", "day": "Saturday", "begin": "01:00", "end": "04:00"}, {"name": "Moy (Live)", "stage": "The Quarry", "day": "Saturday", "begin": "04:00", "end": "05:00"}, {"name": "Alex Downey", "stage": "Warehouse", "day": "Saturday", "begin": "12:00", "end": "14:30"}, {"name": "Ste Roberts (Live)", "stage": "Warehouse", "day": "Saturday", "begin": "14:30", "end": "15:30"}, {"name": "Radioactive Man", "stage": "Warehouse", "day": "Saturday", "begin": "15:30", "end": "17:00"}, {"name": "Hackney Electronica (Live)", "stage": "Warehouse", "day": "Saturday", "begin": "17:00", "end": "18:30"}, {"name": "Craig Richards (Electro Set)", "stage": "Warehouse", "day": "Saturday", "begin": "18:30", "end": "19:30"}, {"name": "C.A.R (Live)", "stage": "Warehouse", "day": "Saturday", "begin": "19:30", "end": "20:30"}, {"name": "Bruno Schmidt", "stage": "Warehouse", "day": "Saturday", "begin": "20:30", "end": "23:00"}, {"name": "Z@P", "stage": "Warehouse", "day": "Saturday", "begin": "23:00", "end": "01:30"}, {"name": "Slam (Live)", "stage": "Warehouse", "day": "Saturday", "begin": "01:30", "end": "03:00"}, {"name": "Quest", "stage": "Warehouse", "day": "Saturday", "begin": "03:00", "end": "05:00"}, {"name": "Coast 2 Coast (The Ghost & Gene on Earth)", "stage": "Derren Smart", "day": "Sunday", "begin": "11:00", "end": "14:00"}, {"name": "Dr Banana", "stage": "Derren Smart", "day": "Sunday", "begin": "14:00", "end": "17:00"}, {"name": "Danny Daze", "stage": "Derren Smart", "day": "Sunday", "begin": "17:00", "end": "19:00"}, {"name": "Freakenstein", "stage": "Derren Smart", "day": "Sunday", "begin": "19:00", "end": "21:00"}, {"name": "Helena Hauff", "stage": "Derren Smart", "day": "Sunday", "begin": "21:00", "end": "23:00"}, {"name": "Marie Davidson (Live)", "stage": "Derren Smart", "day": "Sunday", "begin": "23:00", "end": "00:00"}, {"name": "Reptant (DJ Set)", "stage": "Derren Smart", "day": "Sunday", "begin": "00:00", "end": "02:00"}, {"name": "Facta & K-Lone", "stage": "Earthling", "day": "Sunday", "begin": "12:00", "end": "15:00"}, {"name": "Kia", "stage": "Earthling", "day": "Sunday", "begin": "15:00", "end": "17:30"}, {"name": "Livwutang", "stage": "Earthling", "day": "Sunday", "begin": "17:30", "end": "20:00"}, {"name": "Peverelist (Live)", "stage": "Earthling", "day": "Sunday", "begin": "20:00", "end": "21:00"}, {"name": "Batu", "stage": "Earthling", "day": "Sunday", "begin": "21:00", "end": "23:00"}, {"name": "OK Williams", "stage": "Earthling", "day": "Sunday", "begin": "23:00", "end": "01:00"}, {"name": "DJRUM", "stage": "Earthling", "day": "Sunday", "begin": "01:00", "end": "03:00"}, {"name": "Juan Blanco", "stage": "Giant Steps", "day": "Sunday", "begin": "09:00", "end": "10:00"}, {"name": "Studio Batsumi", "stage": "Giant Steps", "day": "Sunday", "begin": "10:00", "end": "12:00"}, {"name": "Kem", "stage": "Giant Steps", "day": "Sunday", "begin": "12:00", "end": "14:00"}, {"name": "Manfredas", "stage": "Giant Steps", "day": "Sunday", "begin": "14:00", "end": "16:00"}, {"name": "Time is Away", "stage": "Giant Steps", "day": "Sunday", "begin": "16:00", "end": "18:00"}, {"name": "Rob Mello", "stage": "Giant Steps", "day": "Sunday", "begin": "18:00", "end": "20:00"}, {"name": "Fabian", "stage": "Giant Steps", "day": "Sunday", "begin": "20:00", "end": "22:00"}, {"name": "Claude & Krishan", "stage": "Giant Steps", "day": "Sunday", "begin": "22:00", "end": "00:00"}, {"name": "Cedric Woo & Belle Bette", "stage": "Giant Steps", "day": "Sunday", "begin": "00:00", "end": "02:00"}, {"name": "Amit & Aneesh", "stage": "Giant Steps", "day": "Sunday", "begin": "02:00", "end": "03:00"}, {"name": "Kyle Toole & Kian OK", "stage": "Gramophone", "day": "Sunday", "begin": "09:00", "end": "11:00"}, {"name": "Greg Paulus", "stage": "Gramophone", "day": "Sunday", "begin": "11:00", "end": "12:00"}, {"name": "Double Agent 7", "stage": "Gramophone", "day": "Sunday", "begin": "12:00", "end": "14:00"}, {"name": "Truth & Lies", "stage": "Gramophone", "day": "Sunday", "begin": "14:00", "end": "16:00"}, {"name": "Manasseh", "stage": "Gramophone", "day": "Sunday", "begin": "16:00", "end": "18:00"}, {"name": "Chris Sullivan", "stage": "Gramophone", "day": "Sunday", "begin": "18:00", "end": "20:00"}, {"name": "Swing & Dine", "stage": "Gramophone", "day": "Sunday", "begin": "20:00", "end": "01:00"}, {"name": "Peter Adjaye", "stage": "Gramophone", "day": "Sunday", "begin": "01:00", "end": "03:00"}, {"name": "Andy Bainbridge (Not An Animal)", "stage": "Outburst", "day": "Sunday", "begin": "12:00", "end": "15:00"}, {"name": "DJ Nature", "stage": "Outburst", "day": "Sunday", "begin": "15:00", "end": "18:00"}, {"name": "5ive", "stage": "Outburst", "day": "Sunday", "begin": "18:00", "end": "21:00"}, {"name": "Chida", "stage": "Outburst", "day": "Sunday", "begin": "21:00", "end": "00:00"}, {"name": "Powder", "stage": "Outburst", "day": "Sunday", "begin": "00:00", "end": "03:00"}, {"name": "O.Bee & Tomas Station", "stage": "Pavilion", "day": "Sunday", "begin": "11:00", "end": "14:00"}, {"name": "Ricardo Villalobos", "stage": "Pavilion", "day": "Sunday", "begin": "14:00", "end": "17:00"}, {"name": "Dandy Jack", "stage": "Pavilion", "day": "Sunday", "begin": "17:00", "end": "18:00"}, {"name": "Ogazon", "stage": "Pavilion", "day": "Sunday", "begin": "18:00", "end": "21:00"}, {"name": "Christiain AB", "stage": "Pavilion", "day": "Sunday", "begin": "21:00", "end": "00:00"}, {"name": "Ben UFO", "stage": "Pavilion", "day": "Sunday", "begin": "00:00", "end": "03:00"}, {"name": "Miles Wonderfulsound", "stage": "Pinters", "day": "Sunday", "begin": "10:00", "end": "11:00"}, {"name": "Sven Figee (Solo Piano)", "stage": "Pinters", "day": "Sunday", "begin": "11:00", "end": "12:00"}, {"name": "Miles Wonderfulsound", "stage": "Pinters", "day": "Sunday", "begin": "12:00", "end": "13:00"}, {"name": "Nik Bartsch (Solo Piano)", "stage": "Pinters", "day": "Sunday", "begin": "13:00", "end": "14:00"}, {"name": "Miles Wonderfulsound", "stage": "Pinters", "day": "Sunday", "begin": "14:00", "end": "15:00"}, {"name": "Sha & James Gilligan (Live)", "stage": "Pinters", "day": "Sunday", "begin": "15:00", "end": "16:00"}, {"name": "Adam Shelton", "stage": "Pinters", "day": "Sunday", "begin": "16:00", "end": "17:00"}, {"name": "Loula Yorke (Live)", "stage": "Pinters", "day": "Sunday", "begin": "17:00", "end": "18:00"}, {"name": "Manfredas", "stage": "Pinters", "day": "Sunday", "begin": "18:00", "end": "19:00"}, {"name": "Mary Lattimore (Live)", "stage": "Pinters", "day": "Sunday", "begin": "19:00", "end": "20:00"}, {"name": "Paramida (Balearic Set)", "stage": "Pinters", "day": "Sunday", "begin": "20:00", "end": "21:00"}, {"name": "Warrington-Runcorn New Town Development Plan (Live)", "stage": "Pinters", "day": "Sunday", "begin": "21:00", "end": "22:00"}, {"name": "Harri Pepper", "stage": "Pinters", "day": "Sunday", "begin": "22:00", "end": "23:00"}, {"name": "Greg Paulus (Live)", "stage": "Pinters", "day": "Sunday", "begin": "23:00", "end": "00:00"}, {"name": "Shanti Celeste", "stage": "Stallions", "day": "Sunday", "begin": "09:00", "end": "12:00"}, {"name": "Harry & Dan present Tea Dance", "stage": "Stallions", "day": "Sunday", "begin": "13:00", "end": "18:00"}, {"name": "Colleen Cosmo Murphy", "stage": "Stallions", "day": "Sunday", "begin": "18:00", "end": "21:00"}, {"name": "Bill Brewster", "stage": "Stallions", "day": "Sunday", "begin": "21:00", "end": "00:00"}, {"name": "Tama Sumo & Lakuti", "stage": "Stallions", "day": "Sunday", "begin": "00:00", "end": "03:00"}, {"name": "Kian OK", "stage": "The Quarry", "day": "Sunday", "begin": "12:00", "end": "15:00"}, {"name": "Jade Seatle", "stage": "The Quarry", "day": "Sunday", "begin": "15:00", "end": "18:00"}, {"name": "Ellie Stokes", "stage": "The Quarry", "day": "Sunday", "begin": "18:00", "end": "20:30"}, {"name": "Mariin", "stage": "The Quarry", "day": "Sunday", "begin": "20:30", "end": "23:00"}, {"name": "Z@P (Live)", "stage": "The Quarry", "day": "Sunday", "begin": "23:00", "end": "00:00"}, {"name": "Nicolas Lutz", "stage": "The Quarry", "day": "Sunday", "begin": "00:00", "end": "03:00"}, {"name": "Adam Shelton", "stage": "Warehouse", "day": "Sunday", "begin": "12:00", "end": "14:30"}, {"name": "Carl H", "stage": "Warehouse", "day": "Sunday", "begin": "14:30", "end": "17:00"}, {"name": "Paquita Gordon", "stage": "Warehouse", "day": "Sunday", "begin": "17:00", "end": "20:00"}, {"name": "Aurora Halal (Live)", "stage": "Warehouse", "day": "Sunday", "begin": "20:00", "end": "21:00"}, {"name": "John Talabot", "stage": "Warehouse", "day": "Sunday", "begin": "21:00", "end": "00:00"}], "notes": [{"id": "n1", "day": "Saturday", "time": "17:30", "text": "Eat + queue?"}], "gridConfig": {"Thursday": {"startHour": 17, "endHour": 26}, "Friday": {"startHour": 10, "endHour": 32}, "Saturday": {"startHour": 9, "endHour": 32}, "Sunday": {"startHour": 9, "endHour": 27}}};
+
+</script>
+<script>
+(function(){
+  const days = HTON_DATA.days;
+  const stages = HTON_DATA.stages;
+  const entries = HTON_DATA.entries;
+  const gridConfig = HTON_DATA.gridConfig;
+  const PX_PER_HOUR = 140;
+  const ROW_H = 60;
+  const LABEL_W = 132;
+
+  const STAGE_COLORS = {
+    'Derren Smart':'#E8A23D','Pinters':'#C97B63','Warehouse':'#6B8F71','The Quarry':'#8E6C88',
+    'Pavilion':'#4C8C8B','Earthling':'#D1A85A','Outburst':'#B5654F','Terminus':'#7C8471',
+    'Stallions':'#5D80A6','Gramophone':'#A9713B','Giant Steps':'#6FA37D','Lake/Orchard':'#7C8471',
+    'Armadilo':'#BD8B4E'
+  };
+
+  let currentDay = days[0];
+  let searchTerm = '';
+  let notes = [];
+
+  function toMinAbs(t){
+    const [h,m] = t.split(':').map(Number);
+    let v = h*60+m;
+    if (h < 9) v += 24*60;
+    return v;
+  }
+
+  // ---------- Day tabs ----------
+  const dayTabs = document.getElementById('dayTabs');
+  days.forEach(d=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (d===currentDay ? ' active' : '');
+    btn.textContent = d;
+    btn.dataset.day = d;
+    btn.onclick = ()=>{
+      currentDay = d;
+      searchTerm = '';
+      document.getElementById('searchInput').value = '';
+      render();
+      const gs = document.getElementById('gridScroll');
+      gs.scrollLeft = 0; gs.scrollTop = 0;
+    };
+    dayTabs.appendChild(btn);
+  });
+  function setActiveTab(){
+    document.querySelectorAll('.tab').forEach(b=> b.classList.toggle('active', b.dataset.day===currentDay));
+  }
+
+  // ---------- Search ----------
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', e=>{
+    searchTerm = e.target.value.trim().toLowerCase();
+    render();
+  });
+
+  function setDetail(html){
+    document.getElementById('detailBar').innerHTML = html;
+  }
+
+  // ---------- Grid render ----------
+  function render(){
+    setActiveTab();
+    const cfg = gridConfig[currentDay];
+    const totalHours = cfg.endHour - cfg.startHour;
+    const timelineWidth = totalHours * PX_PER_HOUR;
+    const dayEntries = entries.filter(e=>e.day===currentDay);
+
+    const inner = document.getElementById('gridInner');
+    inner.innerHTML = '';
+    inner.style.width = (LABEL_W + timelineWidth) + 'px';
+
+    // corner
+    const corner = document.createElement('div');
+    corner.className = 'corner';
+    corner.textContent = currentDay.slice(0,3);
+    inner.appendChild(corner);
+
+    // ruler
+    const ruler = document.createElement('div');
+    ruler.className = 'ruler';
+    ruler.style.width = timelineWidth + 'px';
+    for(let h=cfg.startHour; h<=cfg.endHour; h++){
+      const tick = document.createElement('div');
+      const hourMod = ((h % 24)+24)%24;
+      const isDaybreak = hourMod===0;
+      tick.className = 'tick' + (isDaybreak ? ' daybreak' : '');
+      tick.style.left = ((h-cfg.startHour)*PX_PER_HOUR) + 'px';
+      tick.textContent = String(hourMod).padStart(2,'0') + ':00';
+      ruler.appendChild(tick);
+    }
+    inner.appendChild(ruler);
+
+    // gridlines background for lanes (hour lines)
+    const gridlineCss = `repeating-linear-gradient(to right, transparent 0, transparent ${PX_PER_HOUR-1}px, rgba(255,255,255,0.05) ${PX_PER_HOUR-1}px, rgba(255,255,255,0.05) ${PX_PER_HOUR}px)`;
+
+    let totalMatches = 0;
+    let firstMatchEl = null;
+
+    stages.forEach(stage=>{
+      const row = document.createElement('div');
+      row.className = 'stagerow';
+
+      const label = document.createElement('div');
+      label.className = 'stagelabel';
+      label.textContent = stage;
+
+      const lane = document.createElement('div');
+      lane.className = 'lane';
+      lane.style.width = timelineWidth + 'px';
+      lane.style.setProperty('--gridlines', gridlineCss);
+      lane.style.backgroundImage = gridlineCss;
+
+      const stageEntries = dayEntries.filter(e=>e.stage===stage);
+
+      if(stageEntries.length===0){
+        label.classList.add('empty');
+        const note = document.createElement('div');
+        note.className = 'empty-note';
+        note.textContent = "Lineup not added yet";
+        lane.appendChild(note);
+      }
+
+      stageEntries.forEach(e=>{
+        const beginAbs = toMinAbs(e.begin);
+        const endAbs = toMinAbs(e.end);
+        const left = (beginAbs - cfg.startHour*60) / 60 * PX_PER_HOUR;
+        const width = Math.max((endAbs - beginAbs) / 60 * PX_PER_HOUR - 2, 4);
+
+        const block = document.createElement('div');
+        const isMatch = searchTerm && e.name.toLowerCase().includes(searchTerm);
+        block.className = 'block' + (width < 46 ? ' tiny' : '');
+        block.style.left = left + 'px';
+        block.style.width = width + 'px';
+        block.style.background = STAGE_COLORS[stage] || '#888';
+        block.tabIndex = 0;
+        block.title = `${e.name} · ${stage} · ${e.begin}–${e.end}`;
+        if(width >= 46) block.textContent = e.name;
+
+        if(searchTerm){
+          if(isMatch){ block.classList.add('match'); totalMatches++; if(!firstMatchEl) firstMatchEl = block; }
+          else { block.classList.add('dim'); }
+        }
+
+        const showDetail = ()=> setDetail(`<strong>${e.name}</strong> &nbsp;·&nbsp; ${stage} &nbsp;·&nbsp; ${e.begin}–${e.end}`);
+        block.addEventListener('mouseenter', showDetail);
+        block.addEventListener('focus', showDetail);
+        block.addEventListener('click', showDetail);
+
+        lane.appendChild(block);
+      });
+
+      row.appendChild(label);
+      row.appendChild(lane);
+      inner.appendChild(row);
+    });
+
+    if(searchTerm){
+      setDetail(totalMatches
+        ? `${totalMatches} match${totalMatches===1?'':'es'} for "${searchTerm}" on ${currentDay}`
+        : `No matches for "${searchTerm}" on ${currentDay} — try another day`);
+      if(firstMatchEl){
+        firstMatchEl.scrollIntoView({behavior:'smooth', inline:'center', block:'center'});
+      }
+    } else if(document.activeElement !== searchInput) {
+      setDetail('Hover or tap a set for details');
+    }
+  }
+
+  // ---------- Drag to scroll ----------
+  const gridScroll = document.getElementById('gridScroll');
+  let isDown = false, startX, startY, scrollLeft, scrollTop;
+  gridScroll.addEventListener('mousedown', e=>{
+    if(e.target.closest('.block')) return;
+    isDown = true;
+    gridScroll.classList.add('dragging');
+    startX = e.pageX; startY = e.pageY;
+    scrollLeft = gridScroll.scrollLeft; scrollTop = gridScroll.scrollTop;
+  });
+  window.addEventListener('mouseup', ()=>{ isDown=false; gridScroll.classList.remove('dragging'); });
+  window.addEventListener('mousemove', e=>{
+    if(!isDown) return;
+    e.preventDefault();
+    gridScroll.scrollLeft = scrollLeft - (e.pageX - startX);
+    gridScroll.scrollTop = scrollTop - (e.pageY - startY);
+  });
+
+  // ---------- Notes (persistent) ----------
+  const overlay = document.getElementById('overlay');
+  const panel = document.getElementById('notesPanel');
+  document.getElementById('notesToggle').onclick = ()=>{ overlay.classList.add('open'); panel.classList.add('open'); };
+  document.getElementById('closePanel').onclick = closePanelFn;
+  overlay.onclick = closePanelFn;
+  function closePanelFn(){ overlay.classList.remove('open'); panel.classList.remove('open'); }
+
+  const noteDaySelect = document.getElementById('noteDay');
+  days.forEach(d=>{
+    const opt = document.createElement('option'); opt.value=d; opt.textContent=d;
+    noteDaySelect.appendChild(opt);
+  });
+
+  async function loadNotes(){
+    try{
+      const result = await window.storage.get('houghton-notes', false);
+      notes = result ? JSON.parse(result.value) : (HTON_DATA.notes || []);
+    }catch(err){ notes = HTON_DATA.notes || []; }
+    renderNotes();
+  }
+  async function saveNotes(){
+    try{ await window.storage.set('houghton-notes', JSON.stringify(notes), false); }
+    catch(err){ console.error('Could not save notes', err); }
+    renderNotes();
+  }
+  function escapeHtml(str){ const div=document.createElement('div'); div.textContent=str; return div.innerHTML; }
+  function renderNotes(){
+    const list = document.getElementById('notesList');
+    document.getElementById('noteCount').textContent = notes.length;
+    list.innerHTML = '';
+    if(notes.length===0){ list.innerHTML = '<p class="empty-notes">No notes yet, add one below.</p>'; return; }
+    const dayOrder = {}; days.forEach((d,i)=>dayOrder[d]=i);
+    const sorted = [...notes].sort((a,b)=>(dayOrder[a.day]-dayOrder[b.day]) || (a.time||'').localeCompare(b.time||''));
+    sorted.forEach(n=>{
+      const item = document.createElement('div');
+      item.className = 'note-item';
+      item.innerHTML = `
+        <div class="note-meta">
+          <span class="note-tag">${n.day}${n.time? ' · '+n.time : ''}</span>
+          <span class="note-actions"><button data-id="${n.id}">delete</button></span>
+        </div>
+        <div class="note-text">${escapeHtml(n.text)}</div>`;
+      list.appendChild(item);
+    });
+    list.querySelectorAll('button').forEach(btn=>{
+      btn.onclick = ()=>{ notes = notes.filter(n=>n.id!==btn.dataset.id); saveNotes(); };
+    });
+  }
+  document.getElementById('addNoteBtn').onclick = ()=>{
+    const text = document.getElementById('noteText').value.trim();
+    if(!text) return;
+    notes.push({
+      id: 'n'+Date.now()+Math.random().toString(16).slice(2),
+      day: noteDaySelect.value,
+      time: document.getElementById('noteTime').value.trim(),
+      text
+    });
+    document.getElementById('noteText').value = '';
+    document.getElementById('noteTime').value = '';
+    saveNotes();
+  };
+
+  loadNotes();
+  render();
+})();
+</script>
+</body>
+</html>
