@@ -204,8 +204,7 @@
     for(let h=gg.startHour; h<=gg.endHour; h++){
       const tick = document.createElement('div');
       const hourMod = ((h % 24)+24)%24;
-      const isDaybreak = hourMod===0;
-      tick.className = 'tick' + (isDaybreak ? ' daybreak' : '');
+      tick.className = 'tick';
       tick.style.left = hourToX(h) + 'px';
       tick.textContent = String(hourMod).padStart(2,'0') + ':00';
       ruler.appendChild(tick);
