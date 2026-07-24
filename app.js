@@ -244,7 +244,7 @@
 
     if(width >= 46){
       block.innerHTML = `<span class="block-star" data-key="${key}" title="Favourite">${favLevel ? '\u2605' : '\u2606'}</span>
-        <span class="block-name">${escapeHtml(e.name)}${favLevel ? ' ' + FAV_STARS[favLevel] : ''}</span>`;
+        <span class="block-name-row"><span class="block-name">${escapeHtml(e.name)}${favLevel ? ' ' + FAV_STARS[favLevel] : ''}</span></span>`;
       const starEl = block.querySelector('.block-star');
       starEl.addEventListener('click', ev=>{
         ev.stopPropagation();
