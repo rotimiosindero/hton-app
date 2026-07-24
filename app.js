@@ -547,6 +547,32 @@
   gridScroll.addEventListener('scroll', closeStarMenu);
   scheduleGridScroll.addEventListener('scroll', closeStarMenu);
 
+  // ---------- Collapsing header: more room to study the grid once scrolled past
+  // the first row of stages, reverses when scrolled back near the top. Only
+  // engages when there's enough real off-screen content that collapsing won't
+  // itself remove the overflow that triggered it (which would just flicker
+  // straight back open — the header growing gridScroll tall enough to fit
+  // everything forces scrollTop back to 0).
+  const CHROME_H_COLLAPSED = 84;  // must match body.chrome-collapsed's --chrome-h override in style.css
+  const MIN_OVERFLOW_AFTER_COLLAPSE = 24; // px of scrollable slack required to bother collapsing
+
+  function isCollapseWorthwhile(innerEl){
+    const contentHeight = innerEl.scrollHeight;
+    const clientHeightIfCollapsed = window.innerHeight - CHROME_H_COLLAPSED;
+    return (contentHeight - clientHeightIfCollapsed) > MIN_OVERFLOW_AFTER_COLLAPSE;
+  }
+
+  function updateChromeCollapse(){
+    const gridWorthwhile = isCollapseWorthwhile(document.getElementById('gridInner'));
+    const scheduleWorthwhile = isCollapseWorthwhile(document.getElementById('scheduleGridInner'));
+    const collapsed = (gridWorthwhile && gridScroll.scrollTop > 10)
+      || (scheduleWorthwhile && scheduleGridScroll.scrollTop > 10);
+    document.body.classList.toggle('chrome-collapsed', collapsed);
+  }
+  gridScroll.addEventListener('scroll', updateChromeCollapse);
+  scheduleGridScroll.addEventListener('scroll', updateChromeCollapse);
+  window.addEventListener('resize', updateChromeCollapse);
+
   loadFavorites();
   build();
   buildMyHtonGrid();
