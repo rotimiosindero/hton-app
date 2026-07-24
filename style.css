@@ -13,6 +13,7 @@
   --label-w:132px;
   --row-h:60px;
   --px-per-hour:140px;
+  --ruler-h:20px;
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }
@@ -97,6 +98,13 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
   min-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .detailbar strong{ color:var(--amber); font-weight:600; }
+.search-nav{ display:inline-flex; align-items:center; gap:6px; margin-left:10px; }
+.search-nav button{
+  background:none; border:1px solid var(--line); color:var(--text-muted); border-radius:4px;
+  font-family:var(--font-mono); font-size:11px; padding:1px 7px; cursor:pointer; line-height:1.4;
+}
+.search-nav button:hover{ color:var(--amber); border-color:var(--amber); }
+#searchNavLabel{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); }
 
 .gridscroll{
   overflow:auto;
@@ -111,20 +119,20 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
 
 .corner{
   position:-webkit-sticky; position:sticky; top:0; left:0; z-index:15;
-  width:var(--label-w); height:40px;
+  width:var(--label-w); height:var(--ruler-h);
   background:var(--bg); border-bottom:1px solid var(--line-strong); border-right:1px solid var(--line-strong);
   display:flex; align-items:center; justify-content:center;
   font-family:var(--font-mono); font-size:8px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em;
 }
 .ruler{
-  position:-webkit-sticky; position:sticky; top:0; z-index:8; height:40px;
+  position:-webkit-sticky; position:sticky; top:0; z-index:8; height:var(--ruler-h);
   margin-left:var(--label-w);
   background:var(--bg); border-bottom:1px solid var(--line-strong);
 }
 .tick{
   position:absolute; top:0; height:100%; border-left:1px solid var(--line);
   font-family:var(--font-mono); font-size:9px; color:var(--text-faint);
-  padding-left:5px; padding-top:11px; white-space:nowrap;
+  padding-left:5px; padding-top:4px; white-space:nowrap;
 }
 .dayband{ display:none; }
 
@@ -132,7 +140,7 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
   position:absolute; top:0; width:2px; background:var(--amber); z-index:25; pointer-events:none;
 }
 .now-line::before{
-  content:''; position:absolute; top:36px; left:50%; transform:translateX(-50%);
+  content:''; position:absolute; top:calc(var(--ruler-h) - 4px); left:50%; transform:translateX(-50%);
   width:9px; height:9px; border-radius:50%; background:var(--amber);
 }
 

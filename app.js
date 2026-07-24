@@ -363,9 +363,34 @@
     });
   }
 
+  let searchMatches = [];
+  let searchMatchIndex = 0;
+
+  function scrollToBlock(el){
+    const gs = document.getElementById('gridScroll');
+    const gsRect = gs.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const targetLeft = parseFloat(el.style.left) + LABEL_W;
+    const targetTop = gs.scrollTop + (elRect.top - gsRect.top) - (gsRect.height/2 - elRect.height/2);
+    showGridView();
+    // 6 minutes of empty timeline visible before the match's start, in the space
+    // actually visible past the sticky stage-label column (not hidden behind it).
+    const searchPreRollPx = (6/60) * PX_PER_HOUR;
+    gs.scrollTo({left: Math.max(targetLeft - searchPreRollPx - LABEL_W, 0), top: Math.max(targetTop, 0), behavior:'smooth'});
+  }
+
+  function goToSearchMatch(newIndex){
+    if(searchMatches.length === 0) return;
+    searchMatchIndex = ((newIndex % searchMatches.length) + searchMatches.length) % searchMatches.length;
+    scrollToBlock(searchMatches[searchMatchIndex]);
+    const label = document.getElementById('searchNavLabel');
+    if(label) label.textContent = `${searchMatchIndex+1}/${searchMatches.length}`;
+  }
+
   function applySearch(){
     const blocks = document.querySelectorAll('.block');
-    let totalMatches = 0, firstMatchEl = null;
+    let totalMatches = 0;
+    const matchesInGrid = [];
     blocks.forEach(b=>{
       b.classList.remove('match','dim');
       if(!searchTerm) return;
@@ -373,26 +398,28 @@
       if(isMatch){
         b.classList.add('match');
         totalMatches++;
-        if(!firstMatchEl && b.closest('#gridInner')) firstMatchEl = b;
+        if(b.closest('#gridInner')) matchesInGrid.push(b);
       }
       else { b.classList.add('dim'); }
     });
+    matchesInGrid.sort((a,b)=> parseFloat(a.style.left) - parseFloat(b.style.left));
+    searchMatches = matchesInGrid;
+    searchMatchIndex = 0;
+
     if(searchTerm){
-      setDetail(totalMatches
-        ? `${totalMatches} match${totalMatches===1?'':'es'} for "${searchTerm}" across the weekend`
-        : `No matches for "${searchTerm}"`);
-      if(firstMatchEl){
-        const gs = document.getElementById('gridScroll');
-        const gsRect = gs.getBoundingClientRect();
-        const elRect = firstMatchEl.getBoundingClientRect();
-        const targetLeft = parseFloat(firstMatchEl.style.left) + LABEL_W;
-        const targetTop = gs.scrollTop + (elRect.top - gsRect.top) - (gsRect.height/2 - elRect.height/2);
-        showGridView();
-        // 12 minutes of empty timeline visible before the match's start, in the space
-        // actually visible past the sticky stage-label column (not hidden behind it).
-        const searchPreRollPx = (6/60) * PX_PER_HOUR;
-        gs.scrollTo({left: Math.max(targetLeft - searchPreRollPx - LABEL_W, 0), top: Math.max(targetTop, 0), behavior:'smooth'});
+      if(totalMatches){
+        const navHtml = searchMatches.length > 1
+          ? ` <span class="search-nav"><button type="button" id="searchPrevBtn" aria-label="Previous match">&lsaquo;</button><span id="searchNavLabel">1/${searchMatches.length}</span><button type="button" id="searchNextBtn" aria-label="Next match">&rsaquo;</button></span>`
+          : '';
+        setDetail(`${totalMatches} match${totalMatches===1?'':'es'} for "${searchTerm}" across the weekend${navHtml}`);
+        if(searchMatches.length > 1){
+          document.getElementById('searchPrevBtn').onclick = ()=> goToSearchMatch(searchMatchIndex-1);
+          document.getElementById('searchNextBtn').onclick = ()=> goToSearchMatch(searchMatchIndex+1);
+        }
+      } else {
+        setDetail(`No matches for "${searchTerm}"`);
       }
+      if(searchMatches.length) scrollToBlock(searchMatches[0]);
     } else if(document.activeElement !== searchInput){
       setDetail('Hover or tap a set for details');
     }
