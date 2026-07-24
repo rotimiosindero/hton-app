@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Houghton 2026 — Timetable</title>
+
+<!-- Standard PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#160D0A" />
+
+<!-- iOS Safari: there is no manifest install prompt on iOS, these tags are what
+     actually make "Add to Home Screen" behave like an app instead of a bookmark -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Houghton 2026" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="dawnbar"></div>
+<header>
+  <p class="eyebrow">Unofficial · personal build · one continuous scroll, Thursday to Sunday</p>
+  <h1>Houghton <span>2026</span></h1>
+  <div class="toprow">
+    <div class="tabs" id="dayTabs"></div>
+    <div class="controls">
+      <input type="search" id="searchInput" placeholder="Search an act…" />
+      <button class="notesbtn" id="notesToggle">Notes <span class="notecount" id="noteCount">0</span></button>
+    </div>
+  </div>
+</header>
+
+<div class="detailbar" id="detailBar">Hover or tap a set for details</div>
+
+<div class="gridscroll" id="gridScroll">
+  <div class="gridinner" id="gridInner"></div>
+</div>
+
+<div class="starmenu" id="starMenu">
+  <button data-level="1">★ Must see</button>
+  <button data-level="2">☆ Could see</button>
+  <button data-level="3">⇄ Clash backup</button>
+  <button data-level="0" class="clearbtn">Clear favourite</button>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="panel" id="notesPanel">
+  <div class="panel-head">
+    <h2>Notes</h2>
+    <button class="closebtn" id="closePanel">&times;</button>
+  </div>
+  <div class="panel-body">
+    <p class="panel-sub">Personal reminders for the weekend, eat, sleep, queue times, meet-ups, whatever's useful. These aren't acts, just notes to yourself. Stored on this device.</p>
+    <div id="notesList"></div>
+    <div class="addform">
+      <label for="noteDay">Day</label>
+      <select id="noteDay"></select>
+      <label for="noteTime">Time (optional)</label>
+      <input type="text" id="noteTime" placeholder="e.g. 17:30" />
+      <label for="noteText">Note</label>
+      <textarea id="noteText" placeholder="e.g. Eat before the queue builds up"></textarea>
+      <button class="addbtn" id="addNoteBtn">Add note</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
