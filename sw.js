@@ -1,7 +1,7 @@
 // Bump this version string whenever any cached file changes (including data.js
 // for a new year's lineup) so returning visitors get the fresh copy instead of
 // being stuck on an old cached version.
-const CACHE_NAME = 'houghton26-0.3.19';
+const CACHE_NAME = 'houghton26-0.3.21';
 
 const PRECACHE_URLS = [
   './',
@@ -15,9 +15,16 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener('install', event => {
+  // Deliberately not cache.addAll(), which respects normal HTTP caching and
+  // can silently bake a stale disk-cached response into a "fresh" install.
+  // {cache:'reload'} forces a real network fetch for every precached file.
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE_URLS))
+      .then(cache => Promise.all(
+        PRECACHE_URLS.map(url =>
+          fetch(url, {cache: 'reload'}).then(response => cache.put(url, response))
+        )
+      ))
       .then(() => self.skipWaiting())
   );
 });

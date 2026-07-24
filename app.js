@@ -125,19 +125,36 @@
 
   function hourToX(h){ return (h - gg.startHour) * PX_PER_HOUR; }
 
-  // ---------- Now / Day / My Schedule tabs ----------
+  // ---------- Now / Day / My Schedule / About tabs ----------
   const dayTabs = document.getElementById('dayTabs');
   const scheduleView = document.getElementById('scheduleView');
+  const aboutView = document.getElementById('aboutView');
+
+  // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
+  // single source of truth, so this just gets bumped alongside it by hand.
+  const APP_VERSION = '0.3.21';
 
   function showGridView(){
     document.getElementById('gridScroll').style.display = '';
     scheduleView.style.display = 'none';
+    aboutView.style.display = 'none';
     myScheduleBtn.classList.remove('active');
+    aboutBtn.classList.remove('active');
   }
   function showScheduleView(){
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'flex';
+    aboutView.style.display = 'none';
     myScheduleBtn.classList.add('active');
+    aboutBtn.classList.remove('active');
+  }
+  function showAboutView(){
+    document.getElementById('gridScroll').style.display = 'none';
+    scheduleView.style.display = 'none';
+    aboutView.style.display = 'flex';
+    myScheduleBtn.classList.remove('active');
+    aboutBtn.classList.add('active');
+    document.getElementById('appVersionLabel').textContent = APP_VERSION;
   }
 
   function goToNow(){
@@ -173,6 +190,12 @@
   myScheduleBtn.textContent = 'My Hton';
   myScheduleBtn.onclick = showScheduleView;
   dayTabs.appendChild(myScheduleBtn);
+
+  const aboutBtn = document.createElement('button');
+  aboutBtn.className = 'tab';
+  aboutBtn.textContent = 'About';
+  aboutBtn.onclick = showAboutView;
+  dayTabs.appendChild(aboutBtn);
 
   const SCHEDULE_MODE_KEY = 'houghton-schedule-mode-v1';
   function applyScheduleMode(mode){
@@ -286,6 +309,22 @@
     return block;
   }
 
+  // A trailing blank row so the last real stage (e.g. Armadilo) can be scrolled
+  // fully clear of the rounded corners/home-indicator area on phones like the
+  // iPhone 13, which otherwise clip the bottom of the final lane.
+  function appendSpacerRow(inner){
+    const row = document.createElement('div');
+    row.className = 'stagerow spacer-row';
+    const label = document.createElement('div');
+    label.className = 'stagelabel empty';
+    const lane = document.createElement('div');
+    lane.className = 'lane';
+    lane.style.width = timelineWidth + 'px';
+    row.appendChild(label);
+    row.appendChild(lane);
+    inner.appendChild(row);
+  }
+
   // ---------- Grid render (built once; search just toggles classes) ----------
   function build(){
     const inner = document.getElementById('gridInner');
@@ -326,6 +365,7 @@
       row.appendChild(lane);
       inner.appendChild(row);
     });
+    appendSpacerRow(inner);
   }
 
   // ---------- My Hton timetable (favourited sets only, same layout as the main grid) ----------
@@ -372,6 +412,7 @@
       row.appendChild(lane);
       inner.appendChild(row);
     });
+    appendSpacerRow(inner);
   }
 
   let searchMatches = [];
