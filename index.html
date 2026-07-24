@@ -22,15 +22,23 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<div class="passgate" id="passGate">
+  <form class="passgate-card" id="passGateForm">
+    <h2>Houghton <span>2026</span></h2>
+    <p>Enter the password to continue</p>
+    <input type="password" id="passGateInput" placeholder="Password" autocomplete="off" autofocus />
+    <button type="submit">Enter</button>
+    <p class="passgate-error" id="passGateError" style="display:none;">Wrong password, try again</p>
+  </form>
+</div>
+
 <div class="dawnbar"></div>
 <header>
-  <p class="eyebrow">Unofficial · personal build · one continuous scroll, Thursday to Sunday</p>
-  <h1>Houghton <span>2026</span></h1>
+  <h1 id="pageTitle">Houghton <span>2026</span></h1>
   <div class="toprow">
     <div class="tabs" id="dayTabs"></div>
     <div class="controls">
       <input type="search" id="searchInput" placeholder="Search an act…" />
-      <button class="notesbtn" id="notesToggle">Notes <span class="notecount" id="noteCount">0</span></button>
     </div>
   </div>
 </header>
@@ -41,32 +49,22 @@
   <div class="gridinner" id="gridInner"></div>
 </div>
 
+<div class="scheduleview" id="scheduleView">
+  <div class="schedule-toggle" id="scheduleToggle">
+    <button class="schedule-toggle-btn active" data-mode="list">List</button>
+    <button class="schedule-toggle-btn" data-mode="timetable">Timetable</button>
+  </div>
+  <div id="scheduleList"></div>
+  <div class="gridscroll" id="scheduleGridScroll" style="display:none;">
+    <div class="gridinner" id="scheduleGridInner"></div>
+  </div>
+</div>
+
 <div class="starmenu" id="starMenu">
   <button data-level="1">★ Must see</button>
   <button data-level="2">☆ Could see</button>
   <button data-level="3">⇄ Clash backup</button>
   <button data-level="0" class="clearbtn">Clear favourite</button>
-</div>
-
-<div class="overlay" id="overlay"></div>
-<div class="panel" id="notesPanel">
-  <div class="panel-head">
-    <h2>Notes</h2>
-    <button class="closebtn" id="closePanel">&times;</button>
-  </div>
-  <div class="panel-body">
-    <p class="panel-sub">Personal reminders for the weekend, eat, sleep, queue times, meet-ups, whatever's useful. These aren't acts, just notes to yourself. Stored on this device.</p>
-    <div id="notesList"></div>
-    <div class="addform">
-      <label for="noteDay">Day</label>
-      <select id="noteDay"></select>
-      <label for="noteTime">Time (optional)</label>
-      <input type="text" id="noteTime" placeholder="e.g. 17:30" />
-      <label for="noteText">Note</label>
-      <textarea id="noteText" placeholder="e.g. Eat before the queue builds up"></textarea>
-      <button class="addbtn" id="addNoteBtn">Add note</button>
-    </div>
-  </div>
 </div>
 
 <script src="data.js"></script>

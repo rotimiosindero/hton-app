@@ -9,7 +9,7 @@ duration. Built from the original spreadsheet's merged-cell timings.
 ```
 index.html            the page shell
 style.css              all styling (system fonts only, no external requests)
-app.js                 rendering, search, drag-to-scroll, notes
+app.js                 rendering, search, drag-to-scroll, favourites
 data.js                the parsed timetable data (HTON_DATA)
 manifest.webmanifest   makes it installable as an app
 sw.js                  service worker, caches everything for offline use
@@ -44,11 +44,6 @@ confirm it still works, that is the real test of the offline behaviour.
   JetBrains Mono from Google Fonts. That is one more thing that can fail
   offline or on a slow signal, so this version uses only the system font
   already on your device, styled to keep the same visual weight.
-- **Notes now use `localStorage`, not `window.storage`.** The Claude.ai
-  version's notes persistence only works inside Claude's own Artifacts
-  sandbox. A standalone site needs the standard browser API instead, it
-  behaves the same way from your side (notes stay on that device), it just
-  works outside of Claude.ai too.
 - **A few Safari-specific touches**: `-webkit-` prefixes for sticky
   positioning and momentum scrolling, `overscroll-behavior: contain` on the
   grid so dragging near the screen edge is less likely to trigger Safari's
@@ -82,5 +77,5 @@ screen rather than near the very edge avoids it.
 
 Everything specific to this year's data lives in `data.js`. Swap that file's
 contents for a new lineup (same shape: `stages`, `days`, `entries`,
-`globalGrid`, `notes`) and bump the `CACHE_NAME` version string in `sw.js` so
+`globalGrid`) and bump the `CACHE_NAME` version string in `sw.js` so
 returning visitors get the new copy instead of a stale cached one.
