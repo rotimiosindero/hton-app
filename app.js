@@ -3,6 +3,12 @@
   // data.js and the rendered page are always publicly fetchable regardless.
   // This just keeps casual visitors from landing on the content directly.) ----------
   const PASSGATE_HASH = '415e876821dbe332e31322627ed2588145c74f349133bd715f29486be0a1a1d6';
+  // Fallback only: crypto.subtle needs a secure context (https, or http://localhost).
+  // Plain http:// on a LAN IP (e.g. testing from a phone against a dev machine) has
+  // no access to it at all, so the hash check would silently throw with no visible
+  // error. This keeps the gate functional there too — no weaker in practice, since
+  // the hash above is just as easy to look up in the page source either way.
+  const PASSGATE_PLAINTEXT_FALLBACK = 'LaLaLand2026';
   const PASSGATE_KEY = 'houghton-unlocked-v1';
   async function sha256Hex(text){
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -17,8 +23,13 @@
   if(alreadyUnlocked) passGate.classList.add('unlocked');
   passGateForm.addEventListener('submit', async ev=>{
     ev.preventDefault();
-    const hash = await sha256Hex(passGateInput.value);
-    if(hash === PASSGATE_HASH){
+    let matches;
+    if(window.crypto && window.crypto.subtle){
+      matches = (await sha256Hex(passGateInput.value)) === PASSGATE_HASH;
+    } else {
+      matches = passGateInput.value === PASSGATE_PLAINTEXT_FALLBACK;
+    }
+    if(matches){
       passGateError.style.display = 'none';
       passGate.classList.add('unlocked');
       try{ localStorage.setItem(PASSGATE_KEY, '1'); }catch(err){}
@@ -546,32 +557,6 @@
   });
   gridScroll.addEventListener('scroll', closeStarMenu);
   scheduleGridScroll.addEventListener('scroll', closeStarMenu);
-
-  // ---------- Collapsing header: more room to study the grid once scrolled past
-  // the first row of stages, reverses when scrolled back near the top. Only
-  // engages when there's enough real off-screen content that collapsing won't
-  // itself remove the overflow that triggered it (which would just flicker
-  // straight back open — the header growing gridScroll tall enough to fit
-  // everything forces scrollTop back to 0).
-  const CHROME_H_COLLAPSED = 84;  // must match body.chrome-collapsed's --chrome-h override in style.css
-  const MIN_OVERFLOW_AFTER_COLLAPSE = 24; // px of scrollable slack required to bother collapsing
-
-  function isCollapseWorthwhile(innerEl){
-    const contentHeight = innerEl.scrollHeight;
-    const clientHeightIfCollapsed = window.innerHeight - CHROME_H_COLLAPSED;
-    return (contentHeight - clientHeightIfCollapsed) > MIN_OVERFLOW_AFTER_COLLAPSE;
-  }
-
-  function updateChromeCollapse(){
-    const gridWorthwhile = isCollapseWorthwhile(document.getElementById('gridInner'));
-    const scheduleWorthwhile = isCollapseWorthwhile(document.getElementById('scheduleGridInner'));
-    const collapsed = (gridWorthwhile && gridScroll.scrollTop > 10)
-      || (scheduleWorthwhile && scheduleGridScroll.scrollTop > 10);
-    document.body.classList.toggle('chrome-collapsed', collapsed);
-  }
-  gridScroll.addEventListener('scroll', updateChromeCollapse);
-  scheduleGridScroll.addEventListener('scroll', updateChromeCollapse);
-  window.addEventListener('resize', updateChromeCollapse);
 
   loadFavorites();
   build();

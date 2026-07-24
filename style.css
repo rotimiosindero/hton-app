@@ -14,7 +14,6 @@
   --row-h:60px;
   --px-per-hour:140px;
   --ruler-h:20px;
-  --chrome-h:168px;
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }
@@ -22,7 +21,7 @@
 html,body{margin:0;padding:0;}
 body{
   background:var(--bg); color:var(--text); font-family:var(--font-sans);
-  min-height:100vh; -webkit-font-smoothing:antialiased;
+  min-height:100vh; min-height:100dvh; -webkit-font-smoothing:antialiased;
   -webkit-tap-highlight-color:transparent;
   overscroll-behavior-y:none;
 }
@@ -59,29 +58,21 @@ body{
 header{
   background:var(--bg); border-bottom:1px solid var(--line);
   padding:16px max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
-  transition:padding .25s ease;
 }
-.titlerow{
-  display:grid; grid-template-columns:2fr 1fr; align-items:center; gap:16px; margin-bottom:12px;
-  transition:margin-bottom .25s ease;
-}
+.titlerow{ display:grid; grid-template-columns:2fr 1fr; align-items:center; gap:16px; margin-bottom:12px; }
 h1{
   font-family:var(--font-sans); font-weight:800; letter-spacing:-0.01em;
   font-size:clamp(22px,4.5vw,34px); margin:0; text-transform:uppercase;
-  transition:font-size .25s ease;
 }
 h1 span{color:var(--amber);}
 #pageTitle{ cursor:pointer; }
 #pageTitle:hover{ opacity:0.85; }
-.toprow{
-  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-bottom:10px;
-  transition:padding-bottom .25s ease;
-}
+.toprow{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-bottom:10px; }
 .tabs{ display:flex; gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .tab{
   font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:0.04em;
   text-transform:uppercase; background:none; border:none; cursor:pointer; color:var(--text-muted);
-  padding:9px 13px 11px 13px; border-bottom:2px solid transparent; transition:color .15s, border-color .15s, padding .25s ease;
+  padding:9px 13px 11px 13px; border-bottom:2px solid transparent; transition:color .15s, border-color .15s;
   white-space:nowrap; flex-shrink:0;
 }
 .tab:hover{color:var(--text);}
@@ -106,7 +97,6 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
   font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);
   padding:10px 20px; border-bottom:1px solid var(--line); background:var(--bg-raised);
   min-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  transition:padding .25s ease;
 }
 .detailbar strong{ color:var(--amber); font-weight:600; }
 .search-nav{ display:inline-flex; align-items:center; gap:6px; margin-left:10px; }
@@ -117,20 +107,10 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
 .search-nav button:hover{ color:var(--amber); border-color:var(--amber); }
 #searchNavLabel{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); }
 
-/* Collapsing header: more room to study the grid once the user has scrolled past
-   the first row of stages. Reverses automatically when scrolled back to the top. */
-body.chrome-collapsed{ --chrome-h:84px; --ruler-h:10px; }
-body.chrome-collapsed header{ padding-top:6px; }
-body.chrome-collapsed .titlerow{ margin-bottom:4px; }
-body.chrome-collapsed h1{ font-size:clamp(13px,2.5vw,17px); }
-body.chrome-collapsed .toprow{ padding-bottom:4px; }
-body.chrome-collapsed .tab{ padding:4px 10px 5px 10px; }
-body.chrome-collapsed .detailbar{ padding:4px 20px; min-height:10px; }
-
 .gridscroll{
   overflow:auto;
-  max-height:calc(100vh - var(--chrome-h));
-  transition:max-height .25s ease;
+  max-height:calc(100vh - 168px);
+  max-height:calc(100dvh - 168px);
   position:relative;
   cursor:grab;
   -webkit-overflow-scrolling:touch;
@@ -224,8 +204,8 @@ body.chrome-collapsed .detailbar{ padding:4px 20px; min-height:10px; }
 
 /* My Hton view */
 .scheduleview{
-  display:none; flex-direction:column; height:calc(100vh - var(--chrome-h));
-  transition:height .25s ease;
+  display:none; flex-direction:column; height:calc(100vh - 168px);
+  height:calc(100dvh - 168px);
 }
 .schedule-toggle{ display:flex; gap:6px; padding:16px 20px 12px 20px; flex-shrink:0; }
 .schedule-toggle-btn{
