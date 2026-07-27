@@ -1,7 +1,7 @@
 // Bump this version string whenever any cached file changes (including data.js
 // for a new year's lineup) so returning visitors get the fresh copy instead of
 // being stuck on an old cached version.
-const CACHE_NAME = 'houghton26-0.4.1';
+const CACHE_NAME = 'houghton26-0.5.0';
 
 const PRECACHE_URLS = [
   './',
@@ -9,6 +9,7 @@ const PRECACHE_URLS = [
   './style.css',
   './app.js',
   './data.js',
+  './artists.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'

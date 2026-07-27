@@ -75,7 +75,7 @@
     'Derren Smart':'#C1441E','Pinters':'#8B5E34','Warehouse':'#9C7A3C','The Quarry':'#6E7B5C',
     'Pavilion':'#4F6B66','Earthling':'#D4A24E','Outburst':'#A8583F','Terminus':'#6B5B4A',
     'Stallions':'#5C6E7A','Gramophone':'#B3702E','Giant Steps':'#7A8B5E','The Orchard':'#5F7A6E',
-    'The Armadilo':'#9E6B3F'
+    'The Armadillo':'#9E6B3F'
   };
   // The same tint-over-card-background approach reads very differently depending
   // on theme: on the dark card, 25%/60% already stands off the page clearly. On
@@ -164,11 +164,12 @@
   // ---------- Now / Day / My Schedule / About tabs ----------
   const dayTabs = document.getElementById('dayTabs');
   const scheduleView = document.getElementById('scheduleView');
+  const artistsView = document.getElementById('artistsView');
   const aboutView = document.getElementById('aboutView');
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.4.1';
+  const APP_VERSION = '0.5.0';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -179,8 +180,10 @@
     currentView = 'grid';
     document.getElementById('gridScroll').style.display = '';
     scheduleView.style.display = 'none';
+    artistsView.style.display = 'none';
     aboutView.style.display = 'none';
     myScheduleBtn.classList.remove('active');
+    artistsBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
     // The grid was possibly display:none a moment ago (while My Hton or About
     // was showing), and a hidden element's scrollHeight reads as 0 — without
@@ -191,17 +194,32 @@
     currentView = 'schedule';
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'flex';
+    artistsView.style.display = 'none';
     aboutView.style.display = 'none';
     myScheduleBtn.classList.add('active');
+    artistsBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
     renderNowLine();
+  }
+  function showArtistsView(){
+    currentView = 'artists';
+    document.getElementById('gridScroll').style.display = 'none';
+    scheduleView.style.display = 'none';
+    artistsView.style.display = 'flex';
+    aboutView.style.display = 'none';
+    myScheduleBtn.classList.remove('active');
+    artistsBtn.classList.add('active');
+    aboutBtn.classList.remove('active');
+    buildArtistsList();
   }
   function showAboutView(){
     currentView = 'about';
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'none';
+    artistsView.style.display = 'none';
     aboutView.style.display = 'flex';
     myScheduleBtn.classList.remove('active');
+    artistsBtn.classList.remove('active');
     aboutBtn.classList.add('active');
     document.getElementById('appVersionLabel').textContent = APP_VERSION;
   }
@@ -250,6 +268,18 @@
   myScheduleBtn.textContent = 'My Hton';
   myScheduleBtn.onclick = showScheduleView;
   dayTabs.appendChild(myScheduleBtn);
+
+  const artistsBtn = document.createElement('button');
+  artistsBtn.className = 'tab';
+  artistsBtn.textContent = 'Artists';
+  artistsBtn.onclick = ()=>{
+    // A direct tab click (as opposed to following a block's name to its bio)
+    // starts a fresh browse — any pending "back to where I was" no longer applies.
+    artistReturnState = null;
+    document.getElementById('artistBackBtn').style.display = 'none';
+    showArtistsView();
+  };
+  dayTabs.appendChild(artistsBtn);
 
   const aboutBtn = document.createElement('button');
   aboutBtn.className = 'tab';
@@ -464,6 +494,13 @@
     document.getElementById('detailBar').innerHTML = html;
   }
   function escapeHtml(str){ const div=document.createElement('div'); div.textContent=str; return div.innerHTML; }
+  // Delegated so it keeps working across every setDetail() re-render, rather
+  // than needing to re-attach a listener each time the detail bar's content changes.
+  document.getElementById('detailBar').addEventListener('click', ev=>{
+    const link = ev.target.closest('.detail-artist-link');
+    if(!link) return;
+    goToArtistBio(link.dataset.artist);
+  });
 
   // ---------- Shared grid-building helpers (used by both the main grid and My Hton's timetable) ----------
   const LANE_STRIPE_BG = `repeating-linear-gradient(to right, transparent 0, transparent ${PX_PER_HOUR-1}px, rgba(255,255,255,0.05) ${PX_PER_HOUR-1}px, rgba(255,255,255,0.05) ${PX_PER_HOUR}px)`;
@@ -537,7 +574,16 @@
       });
     }
 
-    const showDetail = ()=> setDetail(`<strong>${e.name}</strong> &nbsp;\u00b7&nbsp; ${stage} &nbsp;\u00b7&nbsp; ${e.day} ${e.begin}\u2013${e.end}`);
+    const showDetail = ()=>{
+      // Only linkify when the name resolves to exactly one artist that has a
+      // profile \u2014 a B2B/split name (e.g. "Amit & Aneesh") stays plain text
+      // rather than guessing which half of the pair to send someone to.
+      const profiles = resolveArtistProfiles(e.name).filter(p => ARTIST_DATA[p]);
+      const nameHtml = profiles.length === 1
+        ? `<strong class="detail-artist-link" data-artist="${escapeHtml(profiles[0])}">${escapeHtml(e.name)}</strong>`
+        : `<strong>${escapeHtml(e.name)}</strong>`;
+      setDetail(`${nameHtml} &nbsp;\u00b7&nbsp; ${stage} &nbsp;\u00b7&nbsp; ${e.day} ${e.begin}\u2013${e.end}`);
+    };
     block.addEventListener('mouseenter', showDetail);
     block.addEventListener('focus', showDetail);
     block.addEventListener('click', ()=>{ if(dragged) return; showDetail(); });
@@ -545,7 +591,7 @@
     return block;
   }
 
-  // A trailing blank row so the last real stage (e.g. The Armadilo) can be scrolled
+  // A trailing blank row so the last real stage (e.g. The Armadillo) can be scrolled
   // fully clear of the rounded corners/home-indicator area on phones like the
   // iPhone 13, which otherwise clip the bottom of the final lane.
   function appendSpacerRow(inner){
@@ -748,6 +794,135 @@
       container.appendChild(item);
     });
   }
+
+  // ---------- Artists tab ----------
+  // ARTIST_DATA (from artists.js) only covers a first batch of bigger-billed
+  // acts; everyone else in the lineup still shows up in the list, just
+  // without a bio/link yet, rather than being left out entirely.
+  const ALL_ARTIST_NAMES = [...new Set(
+    entries
+      .filter(e => !e.name.startsWith('Talk:') && !ARTIST_EXCLUDE.includes(e.name))
+      .flatMap(e => ARTIST_SPLITS[e.name] || [ARTIST_ALIASES[e.name] || e.name])
+  )].sort((a,b)=>a.localeCompare(b));
+
+  // Same grouping a grid entry's name resolves to in the Artists tab — used to
+  // decide whether a block's detail-bar name can link to a profile.
+  function resolveArtistProfiles(rawName){
+    return ARTIST_SPLITS[rawName] || [ARTIST_ALIASES[rawName] || rawName];
+  }
+
+  // Lets the "back" button in the Artists tab return to exactly where the
+  // user was (day/scroll position, or My Hton's list/timetable + scroll)
+  // before they followed a block's name to that artist's bio.
+  let artistReturnState = null;
+  function captureReturnState(){
+    if(currentView === 'schedule'){
+      const mode = document.querySelector('.schedule-toggle-btn.active')?.dataset.mode || 'list';
+      if(mode === 'timetable'){
+        const gs = document.getElementById('scheduleGridScroll');
+        return {view:'schedule', mode, scrollLeft: gs.scrollLeft, scrollTop: gs.scrollTop};
+      }
+      const list = document.getElementById('scheduleList');
+      return {view:'schedule', mode, scrollTop: list.scrollTop};
+    }
+    if(currentView === 'about') return {view:'about'};
+    const gs = document.getElementById('gridScroll');
+    return {view:'grid', scrollLeft: gs.scrollLeft, scrollTop: gs.scrollTop};
+  }
+  function restoreReturnState(state){
+    if(!state) return;
+    if(state.view === 'schedule'){
+      showScheduleView();
+      applyScheduleMode(state.mode);
+      if(state.mode === 'timetable'){
+        const gs = document.getElementById('scheduleGridScroll');
+        gs.scrollLeft = state.scrollLeft; gs.scrollTop = state.scrollTop;
+      } else {
+        document.getElementById('scheduleList').scrollTop = state.scrollTop;
+      }
+    } else if(state.view === 'about'){
+      showAboutView();
+    } else {
+      showGridView();
+      const gs = document.getElementById('gridScroll');
+      gs.scrollLeft = state.scrollLeft; gs.scrollTop = state.scrollTop;
+    }
+  }
+  function goToArtistBio(profileName){
+    artistReturnState = captureReturnState();
+    document.getElementById('artistsSearchInput').value = '';
+    showArtistsView();
+    const target = [...document.querySelectorAll('.artist-item')]
+      .find(item => item.dataset.artist === profileName);
+    if(target){
+      const head = target.querySelector('.artist-item-head');
+      if(head && !target.classList.contains('open')) head.click();
+      target.scrollIntoView({block:'center'});
+    }
+    document.getElementById('artistBackBtn').style.display = '';
+  }
+  document.getElementById('artistBackBtn').addEventListener('click', ()=>{
+    const state = artistReturnState;
+    artistReturnState = null;
+    document.getElementById('artistBackBtn').style.display = 'none';
+    restoreReturnState(state);
+  });
+
+  function buildArtistsList(){
+    const container = document.getElementById('artistsList');
+    const searchTerm = (document.getElementById('artistsSearchInput').value || '').trim().toLowerCase();
+    container.innerHTML = '';
+    const filtered = searchTerm
+      ? ALL_ARTIST_NAMES.filter(n => n.toLowerCase().includes(searchTerm))
+      : ALL_ARTIST_NAMES;
+    if(filtered.length === 0){
+      container.innerHTML = '<p class="schedule-empty">No artists match your search.</p>';
+      return;
+    }
+    filtered.forEach(name=>{
+      const info = ARTIST_DATA[name];
+      const item = document.createElement('div');
+      item.className = 'artist-item';
+      item.dataset.artist = name;
+      const head = document.createElement('button');
+      head.type = 'button';
+      head.className = 'artist-item-head';
+      head.innerHTML = `<span class="artist-item-name">${escapeHtml(name)}</span>` +
+        (info ? '<span class="artist-item-chevron">&rsaquo;</span>'
+              : '<span class="artist-item-pending">Profile coming soon</span>');
+      item.appendChild(head);
+
+      if(info){
+        const body = document.createElement('div');
+        body.className = 'artist-item-body';
+        body.style.display = 'none';
+        // The embed is a cross-origin SoundCloud iframe — offline, it just
+        // fails silently/blank rather than showing anything useful, so check
+        // connectivity upfront instead of letting the iframe attempt to load.
+        const embedHtml = info.soundcloudEmbed
+          ? (navigator.onLine
+              ? info.soundcloudEmbed
+              : '<p class="artist-embed-offline">This feature requires internet connection.</p>')
+          : '';
+        body.innerHTML =
+          (info.description ? `<p class="artist-item-desc">${escapeHtml(info.description)}</p>` : '') +
+          embedHtml +
+          (info.soundcloudUrl ? `<a class="artist-item-link" href="${info.soundcloudUrl}" target="_blank" rel="noopener">Listen on SoundCloud</a>` : '');
+        item.appendChild(body);
+        head.addEventListener('click', ()=>{
+          const isOpen = body.style.display !== 'none';
+          body.style.display = isOpen ? 'none' : '';
+          item.classList.toggle('open', !isOpen);
+        });
+      }
+      container.appendChild(item);
+    });
+  }
+  document.getElementById('artistsSearchInput').addEventListener('input', buildArtistsList);
+  // Re-render so embeds switch between the real iframe and the offline
+  // message as soon as connectivity actually changes, not just on next visit.
+  window.addEventListener('online', buildArtistsList);
+  window.addEventListener('offline', buildArtistsList);
 
   // ---------- Live "now" line (drawn in both the main grid and My Hton's timetable) ----------
   function updateNowLineFor(innerId, lineId){
