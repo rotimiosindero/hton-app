@@ -152,7 +152,6 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
 
 .stagerow{ display:flex; height:var(--row-h); border-bottom:1px solid var(--line); }
 .stagerow:nth-child(odd) .lane{ background:rgba(255,255,255,0.012); }
-.stagerow:has(+ .spacer-row){ border-bottom:none; }
 .spacer-row{ border-bottom:none; }
 .stagelabel{
   position:-webkit-sticky; position:sticky; left:0; z-index:6; width:var(--label-w); flex-shrink:0;
