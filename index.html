@@ -7,7 +7,11 @@
 
 <!-- Standard PWA -->
 <link rel="manifest" href="manifest.webmanifest" />
-<meta name="theme-color" content="#160D0A" />
+<!-- Two theme-color tags so the browser chrome/status bar matches the OS's
+     light/dark preference with zero flash before app.js even runs; app.js
+     overrides both when the user manually forces a theme instead of "auto". -->
+<meta name="theme-color" id="themeColorDark" content="#160D0A" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" id="themeColorLight" content="#FAF3E6" media="(prefers-color-scheme: light)" />
 
 <!-- iOS Safari: there is no manifest install prompt on iOS, these tags are what
      actually make "Add to Home Screen" behave like an app instead of a bookmark -->
@@ -70,6 +74,14 @@
     <p>If you discover any bugs, or have any suggestions/feedback, drop me a line - <a href="mailto:hton.app@gmail.com">hton.app@gmail.com</a></p>
     <p>If you found this app useful, please help support the project with a drink or two.</p>
     <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="hton.app" data-color="#FFDD00" data-emoji="🍻"  data-font="Cookie" data-text="Buy me a beer" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    <div class="theme-toggle-group">
+      <p class="theme-toggle-label">Appearance</p>
+      <div class="theme-toggle" id="themeToggle">
+        <button class="theme-toggle-btn" data-theme-mode="auto">Auto</button>
+        <button class="theme-toggle-btn" data-theme-mode="light">Light</button>
+        <button class="theme-toggle-btn" data-theme-mode="dark">Dark</button>
+      </div>
+    </div>
     <p class="about-version">Version <strong id="appVersionLabel">—</strong></p>
   </div>
 </div>

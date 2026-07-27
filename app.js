@@ -53,8 +53,20 @@
     'Stallions':'#5C6E7A','Gramophone':'#B3702E','Giant Steps':'#7A8B5E','Lake/Orchard':'#5F7A6E',
     'Armadilo':'#9E6B3F'
   };
-  const BLOCK_ALPHA = 0.25;
-  const FAV_ALPHA = 0.6;
+  // The same tint-over-card-background approach reads very differently depending
+  // on theme: on the dark card, 25%/60% already stands off the page clearly. On
+  // the light card, those numbers land too close to the pale background to tell
+  // favourited from normal, so light mode uses its own, stronger set.
+  const BLOCK_ALPHA_DARK = 0.25, BLOCK_ALPHA_LIGHT = 0.32;
+  const FAV_ALPHA_DARK = 0.6, FAV_ALPHA_LIGHT = 0.92;
+  const BLOCK_BORDER_ALPHA_DARK = 0.5, BLOCK_BORDER_ALPHA_LIGHT = 0.6;
+  const FAV_BORDER_ALPHA_DARK = 0.5, FAV_BORDER_ALPHA_LIGHT = 1;
+  const FAV_TEXT_LIGHT = '#FBF4E8'; // forced cream in light mode once the favourited fill gets this dark
+  function isLightTheme(){
+    const override = document.documentElement.getAttribute('data-theme');
+    if(override) return override === 'light';
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+  }
   function hexToRgba(hex, alpha){
     const n = parseInt(hex.slice(1), 16);
     const r = (n>>16)&255, g=(n>>8)&255, b=n&255;
@@ -132,23 +144,36 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.3.26';
+  const APP_VERSION = '0.4.0';
+
+  // Tracks which top-level view is showing, so the title button (goToNow)
+  // and the now-line know whether "now" means the main grid or My Hton's
+  // favourites-only timetable.
+  let currentView = 'grid';
 
   function showGridView(){
+    currentView = 'grid';
     document.getElementById('gridScroll').style.display = '';
     scheduleView.style.display = 'none';
     aboutView.style.display = 'none';
     myScheduleBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
+    // The grid was possibly display:none a moment ago (while My Hton or About
+    // was showing), and a hidden element's scrollHeight reads as 0 — without
+    // this, the now-line can be stuck at zero height until the next 30s tick.
+    renderNowLine();
   }
   function showScheduleView(){
+    currentView = 'schedule';
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'flex';
     aboutView.style.display = 'none';
     myScheduleBtn.classList.add('active');
     aboutBtn.classList.remove('active');
+    renderNowLine();
   }
   function showAboutView(){
+    currentView = 'about';
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'none';
     aboutView.style.display = 'flex';
@@ -157,17 +182,28 @@
     document.getElementById('appVersionLabel').textContent = APP_VERSION;
   }
 
-  function goToNow(){
-    showGridView();
-    const gs = document.getElementById('gridScroll');
+  function scrollGridToNow(gridScrollEl){
     const nowMin = nowGlobalMin();
     if(nowMin === null){
       setDetail('Outside the festival dates — showing the start of Thursday');
-      gs.scrollTo({left: 0, behavior:'smooth'});
+      gridScrollEl.scrollTo({left: 0, behavior:'smooth'});
       return;
     }
     const targetX = hourToX(nowMin/60) + LABEL_W;
-    gs.scrollTo({left: Math.max(targetX - 120, 0), behavior:'smooth'});
+    gridScrollEl.scrollTo({left: Math.max(targetX - 120, 0), behavior:'smooth'});
+  }
+
+  function goToNow(){
+    if(currentView === 'schedule'){
+      showScheduleView();
+      applyScheduleMode('timetable');
+      try{ localStorage.setItem(SCHEDULE_MODE_KEY, 'timetable'); }
+      catch(err){ console.error('Could not save schedule view preference', err); }
+      scrollGridToNow(document.getElementById('scheduleGridScroll'));
+    } else {
+      showGridView();
+      scrollGridToNow(document.getElementById('gridScroll'));
+    }
   }
 
   document.getElementById('pageTitle').addEventListener('click', goToNow);
@@ -203,6 +239,10 @@
       b.classList.toggle('active', b.dataset.mode === mode));
     document.getElementById('scheduleList').style.display = mode === 'timetable' ? 'none' : '';
     document.getElementById('scheduleGridScroll').style.display = mode === 'timetable' ? '' : 'none';
+    // Same zero-height-while-hidden issue as showGridView/showScheduleView:
+    // switching List -> Timetable makes scheduleGridInner visible for the
+    // first time, so its now-line needs recalculating right away.
+    if(mode === 'timetable') renderNowLine();
   }
   document.querySelectorAll('.schedule-toggle-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -215,6 +255,57 @@
   try{ savedScheduleMode = localStorage.getItem(SCHEDULE_MODE_KEY) || 'list'; }
   catch(err){ savedScheduleMode = 'list'; }
   applyScheduleMode(savedScheduleMode);
+
+  // ---------- Theme (auto mirrors the OS, or manually forced light/dark) ----------
+  const THEME_KEY = 'houghton-theme-v1';
+  const themeColorDark = document.getElementById('themeColorDark');
+  const themeColorLight = document.getElementById('themeColorLight');
+  const DARK_BG = '#160D0A', LIGHT_BG = '#FAF3E6';
+  function applyTheme(mode){
+    if(mode === 'auto'){
+      // No override: style.css's prefers-color-scheme media query takes over,
+      // and each theme-color tag's own media attribute keeps browser chrome
+      // in sync with the OS automatically, with no JS involved either.
+      document.documentElement.removeAttribute('data-theme');
+      themeColorDark.content = DARK_BG;
+      themeColorLight.content = LIGHT_BG;
+    } else {
+      document.documentElement.setAttribute('data-theme', mode);
+      // Force both tags to the same color so whichever one the browser
+      // honours (based on its own OS-matching, ignoring our override) still
+      // shows the right one.
+      const forced = mode === 'dark' ? DARK_BG : LIGHT_BG;
+      themeColorDark.content = forced;
+      themeColorLight.content = forced;
+    }
+    document.querySelectorAll('.theme-toggle-btn').forEach(b=>
+      b.classList.toggle('active', b.dataset.themeMode === mode));
+  }
+  document.querySelectorAll('.theme-toggle-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      try{ localStorage.setItem(THEME_KEY, btn.dataset.themeMode); }
+      catch(err){ console.error('Could not save theme preference', err); }
+      applyTheme(btn.dataset.themeMode);
+      // Block fill/border alpha is baked into each block's inline style at
+      // build time (it varies per-stage-colour, so it can't be pure CSS) —
+      // re-run the builds so an already-open grid re-tints immediately
+      // instead of waiting for the next favourite toggle or page load.
+      build(); buildMyHtonGrid(); renderNowLine();
+    });
+  });
+  let savedTheme = 'auto';
+  try{ savedTheme = localStorage.getItem(THEME_KEY) || 'auto'; }
+  catch(err){ savedTheme = 'auto'; }
+  applyTheme(savedTheme);
+  if(window.matchMedia){
+    // Only matters in "auto": CSS re-themes the page either way, this just
+    // keeps the block tint math (computed in JS, not CSS) in sync with it.
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', ()=>{
+      if(!document.documentElement.getAttribute('data-theme')){
+        build(); buildMyHtonGrid(); renderNowLine();
+      }
+    });
+  }
 
   // ---------- Search ----------
   const searchInput = document.getElementById('searchInput');
@@ -286,9 +377,17 @@
     block.className = 'block' + (width < 46 ? ' tiny' : '') + (favLevel ? ' fav' : '');
     block.style.left = left + 'px';
     block.style.width = width + 'px';
+    const light = isLightTheme();
+    const fillAlpha = favLevel
+      ? (light ? FAV_ALPHA_LIGHT : FAV_ALPHA_DARK)
+      : (light ? BLOCK_ALPHA_LIGHT : BLOCK_ALPHA_DARK);
+    const borderAlpha = favLevel
+      ? (light ? FAV_BORDER_ALPHA_LIGHT : FAV_BORDER_ALPHA_DARK)
+      : (light ? BLOCK_BORDER_ALPHA_LIGHT : BLOCK_BORDER_ALPHA_DARK);
     block.style.backgroundColor = 'var(--bg-card)';
-    block.style.backgroundImage = `linear-gradient(${hexToRgba(stageColor, favLevel ? FAV_ALPHA : BLOCK_ALPHA)}, ${hexToRgba(stageColor, favLevel ? FAV_ALPHA : BLOCK_ALPHA)})`;
-    block.style.borderColor = hexToRgba(stageColor, 0.5);
+    block.style.backgroundImage = `linear-gradient(${hexToRgba(stageColor, fillAlpha)}, ${hexToRgba(stageColor, fillAlpha)})`;
+    block.style.borderColor = hexToRgba(stageColor, borderAlpha);
+    if(favLevel && light) block.style.color = FAV_TEXT_LIGHT;
     block.tabIndex = 0;
     block.title = `${e.name} \u00b7 ${stage} \u00b7 ${e.day} ${e.begin}\u2013${e.end}`
       + (favLevel ? ` \u00b7 ${FAV_LABELS[favLevel]}` : '');
