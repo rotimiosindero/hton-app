@@ -132,7 +132,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.3.25';
+  const APP_VERSION = '0.3.26';
 
   function showGridView(){
     document.getElementById('gridScroll').style.display = '';
@@ -269,7 +269,12 @@
 
   function buildBlockEl(e, stage){
     const beginAbs = globalMin(e.day, e.begin);
-    const endAbs = globalMin(e.day, e.end);
+    // An overnight set ending exactly at 09:00 doesn't get shifted by
+    // globalMin's own "h < 9" rule (only strictly-before-9 times do), so its
+    // end can land before its begin (e.g. 06:00–09:00). Treat that as
+    // wrapping past the 9am cutoff instead of rendering a negative-width block.
+    let endAbs = globalMin(e.day, e.end);
+    if (endAbs <= beginAbs) endAbs += 24*60;
     const left = hourToX(beginAbs/60);
     const width = Math.max((endAbs - beginAbs) / 60 * PX_PER_HOUR - 2, 4);
 
@@ -606,6 +611,7 @@
   renderNowLine();
   render();
   gridScroll.scrollLeft = 0;
+  showAboutView();
 
   setInterval(renderNowLine, 30000);
   window.addEventListener('resize', renderNowLine);
