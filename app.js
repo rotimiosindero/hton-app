@@ -169,7 +169,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.5.0';
+  const APP_VERSION = '0.5.1';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -896,21 +896,29 @@
         const body = document.createElement('div');
         body.className = 'artist-item-body';
         body.style.display = 'none';
-        // The embed is a cross-origin SoundCloud iframe — offline, it just
-        // fails silently/blank rather than showing anything useful, so check
-        // connectivity upfront instead of letting the iframe attempt to load.
-        const embedHtml = info.soundcloudEmbed
-          ? (navigator.onLine
-              ? info.soundcloudEmbed
-              : '<p class="artist-embed-offline">This feature requires internet connection.</p>')
-          : '';
+        // Embeds are loaded lazily (only once a card is actually opened) rather
+        // than all at once when the list is built — with 100+ artists having a
+        // SoundCloud embed, eagerly mounting every iframe up front was loading
+        // that many cross-origin players simultaneously, which was heavy enough
+        // to crash/reload the app when installed as an iOS home-screen PWA.
         body.innerHTML =
           (info.description ? `<p class="artist-item-desc">${escapeHtml(info.description)}</p>` : '') +
-          embedHtml +
+          (info.soundcloudEmbed ? '<div class="artist-embed-slot"></div>' : '') +
           (info.soundcloudUrl ? `<a class="artist-item-link" href="${info.soundcloudUrl}" target="_blank" rel="noopener">Listen on SoundCloud</a>` : '');
         item.appendChild(body);
+        const embedSlot = body.querySelector('.artist-embed-slot');
+        let embedLoaded = false;
         head.addEventListener('click', ()=>{
           const isOpen = body.style.display !== 'none';
+          if(!isOpen && embedSlot && !embedLoaded){
+            embedLoaded = true;
+            // The embed is a cross-origin SoundCloud iframe — offline, it just
+            // fails silently/blank rather than showing anything useful, so check
+            // connectivity upfront instead of letting the iframe attempt to load.
+            embedSlot.innerHTML = navigator.onLine
+              ? info.soundcloudEmbed
+              : '<p class="artist-embed-offline">This feature requires internet connection.</p>';
+          }
           body.style.display = isOpen ? 'none' : '';
           item.classList.toggle('open', !isOpen);
         });
