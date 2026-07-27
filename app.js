@@ -40,6 +40,30 @@
     }
   });
 
+  // ---------- Request access (no backend, so this just hands off to the
+  // visitor's own mail app with the message pre-filled) ----------
+  const requestAccessForm = document.getElementById('requestAccessForm');
+  const requestName = document.getElementById('requestName');
+  const requestSource = document.getElementById('requestSource');
+  document.getElementById('requestAccessOpenBtn').addEventListener('click', ()=>{
+    passGateForm.style.display = 'none';
+    requestAccessForm.style.display = '';
+    requestName.focus();
+  });
+  document.getElementById('requestAccessCancelBtn').addEventListener('click', ()=>{
+    requestAccessForm.style.display = 'none';
+    passGateForm.style.display = '';
+    passGateInput.focus();
+  });
+  requestAccessForm.addEventListener('submit', ev=>{
+    ev.preventDefault();
+    const subject = encodeURIComponent('Houghton 2026 app — access request');
+    const body = encodeURIComponent(
+      `Name: ${requestName.value.trim()}\nHow they heard about the app: ${requestSource.value.trim()}`
+    );
+    window.location.href = `mailto:hton.app@gmail.com?subject=${subject}&body=${body}`;
+  });
+
   const days = HTON_DATA.days;
   const stages = HTON_DATA.stages;
   const entries = HTON_DATA.entries;
@@ -50,8 +74,8 @@
   const STAGE_COLORS = {
     'Derren Smart':'#C1441E','Pinters':'#8B5E34','Warehouse':'#9C7A3C','The Quarry':'#6E7B5C',
     'Pavilion':'#4F6B66','Earthling':'#D4A24E','Outburst':'#A8583F','Terminus':'#6B5B4A',
-    'Stallions':'#5C6E7A','Gramophone':'#B3702E','Giant Steps':'#7A8B5E','Lake/Orchard':'#5F7A6E',
-    'Armadilo':'#9E6B3F'
+    'Stallions':'#5C6E7A','Gramophone':'#B3702E','Giant Steps':'#7A8B5E','The Orchard':'#5F7A6E',
+    'The Armadilo':'#9E6B3F'
   };
   // The same tint-over-card-background approach reads very differently depending
   // on theme: on the dark card, 25%/60% already stands off the page clearly. On
@@ -144,7 +168,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.4.0';
+  const APP_VERSION = '0.4.1';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -307,6 +331,114 @@
     });
   }
 
+  // ---------- Stage order (drag to rearrange in the About page, per-device) ----------
+  const STAGE_ORDER_KEY = 'houghton-stage-order-v1';
+  function loadStageOrder(){
+    let saved = null;
+    try{ saved = JSON.parse(localStorage.getItem(STAGE_ORDER_KEY) || 'null'); }
+    catch(err){ saved = null; }
+    if(!Array.isArray(saved)) return stages.slice();
+    // Drop any stage no longer in the lineup, then append any new one (e.g.
+    // next year's data.js adds a stage) that isn't in the saved order yet —
+    // otherwise it would silently never appear in either grid.
+    const known = saved.filter(s => stages.includes(s));
+    const missing = stages.filter(s => !known.includes(s));
+    return known.concat(missing);
+  }
+  let stageOrder = loadStageOrder();
+  function saveStageOrder(){
+    try{ localStorage.setItem(STAGE_ORDER_KEY, JSON.stringify(stageOrder)); }
+    catch(err){ console.error('Could not save stage order', err); }
+  }
+
+  function renderStageOrderList(){
+    const list = document.getElementById('stageOrderList');
+    list.innerHTML = '';
+    stageOrder.forEach(stage=>{
+      const item = document.createElement('div');
+      item.className = 'stage-order-item';
+      item.dataset.stage = stage;
+      item.innerHTML = `<span class="stage-order-handle">⠿</span><span>${escapeHtml(stage)}</span>`;
+      list.appendChild(item);
+    });
+  }
+
+  function wireStageOrderDrag(){
+    const list = document.getElementById('stageOrderList');
+    let draggingEl = null, startY = 0;
+
+    function onPointerDown(ev){
+      const item = ev.target.closest('.stage-order-item');
+      if(!item) return;
+      draggingEl = item;
+      startY = ev.clientY;
+      item.classList.add('dragging');
+      item.setPointerCapture(ev.pointerId);
+    }
+    function onPointerMove(ev){
+      if(!draggingEl) return;
+      draggingEl.style.transform = `translateY(${ev.clientY - startY}px)`;
+      const draggingRect = draggingEl.getBoundingClientRect();
+      const draggingMid = draggingRect.top + draggingRect.height/2;
+
+      // Only ever compare against whichever item is *currently* the immediate
+      // neighbour — comparing against every row in the list (as this used to)
+      // means a distant row below is "less than" the drag position on almost
+      // every move, triggering a swap with it instead of the actual neighbour,
+      // which flips back again next event: a rapid, permanent flicker.
+      const prev = draggingEl.previousElementSibling;
+      if(prev){
+        const prevRect = prev.getBoundingClientRect();
+        const prevMid = prevRect.top + prevRect.height/2;
+        if(draggingMid < prevMid){
+          list.insertBefore(draggingEl, prev);
+          startY = ev.clientY;
+          draggingEl.style.transform = 'translateY(0px)';
+          return;
+        }
+      }
+      const next = draggingEl.nextElementSibling;
+      if(next){
+        const nextRect = next.getBoundingClientRect();
+        const nextMid = nextRect.top + nextRect.height/2;
+        if(draggingMid > nextMid){
+          list.insertBefore(draggingEl, next.nextSibling);
+          startY = ev.clientY;
+          draggingEl.style.transform = 'translateY(0px)';
+          return;
+        }
+      }
+    }
+    function onPointerUp(ev){
+      if(!draggingEl) return;
+      draggingEl.classList.remove('dragging');
+      draggingEl.style.transform = '';
+      draggingEl.releasePointerCapture(ev.pointerId);
+      draggingEl = null;
+      stageOrder = [...list.querySelectorAll('.stage-order-item')].map(el => el.dataset.stage);
+      saveStageOrder();
+      build();
+      buildMyHtonGrid();
+      renderNowLine();
+    }
+
+    list.addEventListener('pointerdown', onPointerDown);
+    list.addEventListener('pointermove', onPointerMove);
+    list.addEventListener('pointerup', onPointerUp);
+    list.addEventListener('pointercancel', onPointerUp);
+  }
+
+  renderStageOrderList();
+  wireStageOrderDrag();
+
+  const stageOrderOverlay = document.getElementById('stageOrderOverlay');
+  document.getElementById('stageOrderOpenBtn').addEventListener('click', ()=>{
+    stageOrderOverlay.classList.add('open');
+  });
+  document.getElementById('stageOrderDoneBtn').addEventListener('click', ()=>{
+    stageOrderOverlay.classList.remove('open');
+  });
+
   // ---------- Search ----------
   const searchInput = document.getElementById('searchInput');
   const searchWrap = document.querySelector('.search-wrap');
@@ -413,7 +545,7 @@
     return block;
   }
 
-  // A trailing blank row so the last real stage (e.g. Armadilo) can be scrolled
+  // A trailing blank row so the last real stage (e.g. The Armadilo) can be scrolled
   // fully clear of the rounded corners/home-indicator area on phones like the
   // iPhone 13, which otherwise clip the bottom of the final lane.
   function appendSpacerRow(inner){
@@ -441,7 +573,7 @@
     inner.appendChild(corner);
     inner.appendChild(buildRulerEl());
 
-    stages.forEach(stage=>{
+    stageOrder.forEach(stage=>{
       const row = document.createElement('div');
       row.className = 'stagerow';
 
@@ -484,7 +616,7 @@
     inner.appendChild(corner);
     inner.appendChild(buildRulerEl());
 
-    const favStages = stages.filter(stage=>
+    const favStages = stageOrder.filter(stage=>
       entries.some(e=>e.stage===stage && favorites[entryKey(e)]));
 
     if(favStages.length===0){
