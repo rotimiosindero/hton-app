@@ -68,11 +68,6 @@ const ARTIST_DATA = {
     "soundcloudUrl": "https://soundcloud.com/mixmag-1/the-cover-mix-batu",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2190659351&show_artwork=true\"></iframe>"
   },
-  "Belle Bete": {
-    "description": "London selector and co-founder of the long-running Beauty and the Beat parties and label, known for deep, psychedelic, genre-crossing sets.",
-    "soundcloudUrl": "https://soundcloud.com/belle-bete/bb-at-batb-oct21",
-    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F1185229921&show_artwork=true\"></iframe>"
-  },
   "Ben UFO": {
     "description": "London DJ (Ben Thomson) and co-founder of Hessle Audio, a hugely influential selector across bass, house and techno known for his long-running Rinse FM show.",
     "soundcloudUrl": "https://soundcloud.com/resident-advisor/ra238-ben-ufo-1",
@@ -381,7 +376,7 @@ const ARTIST_DATA = {
     "soundcloudUrl": "https://soundcloud.com/the-ransom-note/jonny-rock-the-ransom-note-mix",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F411075027&show_artwork=true\"></iframe>"
   },
-  "Josh Caffe": {
+  "Josh Caffé": {
     "description": "London DJ, vocalist and producer best known as the frontman of house-techno duo Paranoid London. Runs the Love Child party at Fabric and released his debut solo album Poppa Zesque on Erol Alkan's Phantasy label in 2023.",
     "soundcloudUrl": "https://soundcloud.com/josh-caffe/josh-caffe-do-you-wanna-take",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F1211400265&show_artwork=true\"></iframe>"
@@ -469,6 +464,11 @@ const ARTIST_DATA = {
     "soundcloudUrl": "https://soundcloud.com/mathew-jonson/typerope",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F118974895&show_artwork=true\"></iframe>"
   },
+  "Melchior Productions Ltd": {
+    "description": "Best-known alias of Germany-based producer Thomas Melchior, closely tied to the Frankfurt/Berlin label Perlon across two decades in minimal and micro house. Records including No Disco Future and 2022's Vulnerabilities favour a stripped-back, textural sound that has made him one of the genre's steadiest voices.",
+    "soundcloudUrl": "https://soundcloud.com/platform/tomas-melchoir",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F570491586&show_artwork=true\"></iframe>"
+  },
   "Melina Serser": {
     "description": "Uruguayan-born DJ, based in Barcelona since 2019, whose downtempo, hypnotic sets draw on dub, trip-hop, ambient and global rhythms; also curated her own listening-session events, Hanuk and Irradia.",
     "soundcloudUrl": "https://soundcloud.com/resident-advisor/ra752-melina-serser-20201102",
@@ -483,6 +483,11 @@ const ARTIST_DATA = {
     "description": "London DJ and radio host who came up via pirate stations like Rinse FM before holding long-running residencies at BBC Radio 1 and NTS Radio; also lent her voice to Resident Advisor's video essays.",
     "soundcloudUrl": "https://soundcloud.com/resident-advisor/ra642-moxie-20180917",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F501065547&show_artwork=true\"></iframe>"
+  },
+  "MOY": {
+    "description": "London-based electronic producer whose sound blends melancholic braindance, breakbeat-driven electro and cosmic acid house. Runs his own label, Dynamics of Acid Records, and hosts the Tangled Worlds show on Threads Radio, with releases across labels including Analogical Force and Batrachian.",
+    "soundcloudUrl": "https://soundcloud.com/moy/808luv",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2223163925&show_artwork=true\"></iframe>"
   },
   "Nicolas Lutz": {
     "description": "Berlin-based DJ and celebrated vinyl digger linked to Club der Visionaere and Toi Toi Musik, known for long, exploratory sets built from deep, often overlooked house, techno and electro.",
@@ -558,6 +563,11 @@ const ARTIST_DATA = {
     "description": "Ghanaian-British sound artist, composer and DJ-producer also known as AJ Kwame, with an academic background in mathematics and engineering; co-founded early-1990s trip-hop outfit R.P.M. and later scored soundscapes for architectural and gallery installations.",
     "soundcloudUrl": "https://soundcloud.com/musicforarchitecture/darkest-light-for-dialogues-a-vinylfactory-musicforarchitecture-by-peter-adjaye",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F263370180&show_artwork=true\"></iframe>"
+  },
+  "Peverelist": {
+    "description": "Bristol producer and DJ who founded Punch Drunk Records and later co-founded Livity Sound in 2011, becoming a key architect of the city's underground dance scene. Threads together techno, dub, jungle, garage and grime into a spacious, soundsystem-rooted style across two decades of releases.",
+    "soundcloudUrl": "https://soundcloud.com/peverelist/bluez-classic-mix",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F519575688&show_artwork=true\"></iframe>"
   },
   "Phil Smart": {
     "description": "Veteran Australian DJ voted the country's DJ of the Year in 2000 and twice listed in DJ Magazine's world Top 100; long associated with Sydney's Tweekin residency and the Think and Thunk record labels.",
@@ -809,14 +819,19 @@ const ARTIST_ALIASES = {
   'Al Wooton (Live)': 'Al Wooton',
   'Aurora Halal (Live)': 'Aurora Halal',
   'C.A.R (Live)': 'C.A.R',
+  'Danny Daze (A/V)': 'Danny Daze',
   'Deadbeat (DJ Set)': 'Deadbeat',
   'Deadbeat (Live)': 'Deadbeat',
   'Gideon (reggae set)': 'Gideon',
   'Greg Paulus (Live)': 'Greg Paulus',
   'Hackney Electronica (Live)': 'Hackney Electronica',
-  'Josh Caffe (Live)': 'Josh Caffe',
+  'Jason Lindner (live keyboard sound)': 'Jason Lindner',
+  'Josh Caffé (Live)': 'Josh Caffé',
   'Mathew Jonson (Live)': 'Mathew Jonson',
+  'Melchior Productions Ltd (Live)': 'Melchior Productions Ltd',
   'Midland (Ambient Set)': 'Midland',
+  'Moy (Live)': 'MOY',
+  'Om Unit Presents Acid Dub Studies': 'Om Unit',
   'Paramida (Balearic Set)': 'Paramida',
   'Peach (R&B Set)': 'Peach',
   'Peter Adjaye (Live)': 'Peter Adjaye',
@@ -839,7 +854,7 @@ const ARTIST_ALIASES = {
 // the combined billing.
 const ARTIST_SPLITS = {
   'Amit & Aneesh': ['Amit', 'Aneesh'],
-  'Baby Culture & E/Tape': ['Baby Culture', 'E/Tape'],
+  'Baby Vulture & E/Tape': ['Baby Vulture', 'E/Tape'],
   'Cedric Woo & Belle Bête': ['Cedric Woo', 'Belle Bête'],
   'Claude & Krishan': ['Claude', 'Krishan'],
   'ETAPE and Baby Vulture': ['E/Tape', 'Baby Vulture'],
@@ -872,4 +887,7 @@ const ARTIST_EXCLUDE = [
   'Soundbath with Michelle Cade',
   'Soundbath with Veronika',
   'Thai Masage workshop with Paul Brum',
+  'TBC',
+  'Yamuna Body Rolling',
+  'Yamuna Body Rolling with Gemma Nash',
 ];
