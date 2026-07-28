@@ -169,7 +169,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.5.4';
+  const APP_VERSION = '0.5.5';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -204,7 +204,7 @@
     myScheduleBtn.classList.add('active');
     artistsBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
-    setActiveDayTab(null);
+    updateScheduleDayHighlight();
     renderNowLine();
   }
   function showArtistsView(){
@@ -264,16 +264,32 @@
     days.forEach(d => dayTabButtons[d].classList.toggle('active', d === activeDay));
   }
 
-  // Which day's band the grid is currently scrolled to — used both right
-  // after a day-tab click and continuously while the user free-scrolls, so
-  // the highlighted tab always matches what's actually in view rather than
-  // just whichever tab was last clicked.
-  function currentGridDay(){
-    const h = gg.startHour + document.getElementById('gridScroll').scrollLeft / PX_PER_HOUR;
+  // Which day's band a given horizontal scroll position falls in — used both
+  // right after a day-tab click and continuously while the user free-scrolls,
+  // so the highlighted tab always matches what's actually in view rather than
+  // just whichever tab was last clicked. Shared by the main grid and My
+  // Hton's Timetable sub-view, which use the same hour-to-pixel timeline.
+  function dayAtScrollLeft(scrollLeftPx){
+    const h = gg.startHour + scrollLeftPx / PX_PER_HOUR;
     for(const d of days){
       if(h < gg.bands[d].end) return d;
     }
     return days[days.length - 1];
+  }
+  function currentGridDay(){
+    return dayAtScrollLeft(document.getElementById('gridScroll').scrollLeft);
+  }
+  function currentScheduleGridDay(){
+    return dayAtScrollLeft(document.getElementById('scheduleGridScroll').scrollLeft);
+  }
+  // My Hton keeps its own "My Hton" tab highlighted at all times; the day tab
+  // lights up alongside it, but only while the Timetable sub-mode (which has
+  // a per-day horizontal timeline like the main grid) is actually showing —
+  // the List sub-mode has no per-day scroll position to reflect.
+  function updateScheduleDayHighlight(){
+    if(currentView !== 'schedule') return;
+    const mode = document.querySelector('.schedule-toggle-btn.active')?.dataset.mode || 'list';
+    setActiveDayTab(mode === 'timetable' ? currentScheduleGridDay() : null);
   }
 
   days.forEach(d=>{
@@ -325,6 +341,7 @@
     // switching List -> Timetable makes scheduleGridInner visible for the
     // first time, so its now-line needs recalculating right away.
     if(mode === 'timetable') renderNowLine();
+    updateScheduleDayHighlight();
   }
   document.querySelectorAll('.schedule-toggle-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1050,6 +1067,10 @@
   // Saturday's 09:00 should hand the highlight to Saturday.
   gridScroll.addEventListener('scroll', ()=>{
     if(currentView === 'grid') setActiveDayTab(currentGridDay());
+  });
+  // Same live scroll-spy for My Hton's own per-day timeline (Timetable sub-mode).
+  scheduleGridScroll.addEventListener('scroll', ()=>{
+    if(currentView === 'schedule') setActiveDayTab(currentScheduleGridDay());
   });
 
   loadFavorites();
