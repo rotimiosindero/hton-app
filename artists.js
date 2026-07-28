@@ -242,7 +242,9 @@ const ARTIST_DATA = {
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F799936819&show_artwork=true\"></iframe>"
   },
   "Dresden": {
-    "description": "A collaborative alias for Ivan Smagghe and Manfredas, veteran selectors known individually for genre-roaming DJ work; together as Dresden they lean into tech house with warped electro and dub textures, and made their Glastonbury 'San Remo' debut in 2025."
+    "description": "A collaborative alias for Ivan Smagghe and Manfredas, veteran selectors known individually for genre-roaming DJ work; together as Dresden they lean into tech house with warped electro and dub textures, and made their Glastonbury 'San Remo' debut in 2025.",
+    "soundcloudUrl": "https://soundcloud.com/dresden-dance/last-dresden-recording-at",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2296382660&show_artwork=true\"></iframe>"
   },
   "Electro Elvis": {
     "description": "UK-based DJ, VJ and self-styled techno tinkerer, and a founding resident of London's long-running WANG parties, where his sets and visuals mix disco, electro and techno with playful showmanship.",
