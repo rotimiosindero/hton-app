@@ -79,3 +79,32 @@ Everything specific to this year's data lives in `data.js`. Swap that file's
 contents for a new lineup (same shape: `stages`, `days`, `entries`,
 `globalGrid`) and bump the `CACHE_NAME` version string in `sw.js` so
 returning visitors get the new copy instead of a stale cached one.
+
+## Version history
+
+- **v1.0.0** — first public release
+- **v0.5.11** — remove password gate, tweak About page copy
+- **v0.5.9** — security hardening ahead of public release
+- **v0.5.8** — consolidate more Artists-tab duplicates and fix name spellings
+- **v0.5.7** — add Map tab, five more artist profiles, and a lineup spelling fix
+- **v0.5.6** — add Dresden SoundCloud link
+- **v0.5.5** — My Hton Timetable mode gets the same day-tab scroll highlighting
+- **v0.5.4** — day tab highlight follows grid scroll position, not just the last click
+- **v0.5.3** — also exclude the two named Soundbath workshop sessions
+- **v0.5.2** — exclude workshop/wellness entries from Artists tab
+- **v0.5.1** — lazy-load SoundCloud embeds in Artists tab to fix iOS home-screen PWA crash
+- **v0.5.0** — new Artists tab with 155 researched profiles, bio-link navigation, offline SoundCloud fallback
+- **v0.4.1** — draggable stage order, request access form, Orchard/Armadilo lineups, offline instructions
+- **v0.4.0** — light/dark theme, block contrast fix, My Hton now-line fix, context-aware title button
+- **v0.3.26** — fix invisible overnight sets, merge day-boundary splits, About page overhaul, new app icon
+- **v0.3.25** — add GoatCounter visit tracking
+- **v0.3.24** — restore border under last stage row, keep spacer row borderless
+- **v0.3.23** — clear notch/Dynamic Island, tidy up spacer row
+- **v0.3.21** — bottom spacer row, About tab, service worker cache fix
+- **v0.3.19** — fix password gate fallback, revert collapsing header
+- **v0.3.16** — collapsing header on scroll, halved ruler height
+- **v0.3.13** — search match navigation, halved ruler height
+- **v0.3.12** — fix search zoom, add clear button, jump-to-start with buffer
+- **v0.3.7** — remove daybreak amber tick highlight
+- **v0.3.6** — iPhone-friendly header, sticky artist names
+- **v0.3.0** — palette, favouriting, My Hton, now-line, password gate
