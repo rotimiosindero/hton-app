@@ -169,7 +169,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.5.3';
+  const APP_VERSION = '0.5.4';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -185,6 +185,11 @@
     myScheduleBtn.classList.remove('active');
     artistsBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
+    // Restore whichever day tab matches the grid's current scroll position —
+    // it may have been cleared while another tab (My Hton/Artists/About) was
+    // showing, or the scroll position may have changed underneath us (e.g.
+    // the "quick return" back button restoring a saved scrollLeft).
+    setActiveDayTab(currentGridDay());
     // The grid was possibly display:none a moment ago (while My Hton or About
     // was showing), and a hidden element's scrollHeight reads as 0 — without
     // this, the now-line can be stuck at zero height until the next 30s tick.
@@ -199,6 +204,7 @@
     myScheduleBtn.classList.add('active');
     artistsBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
+    setActiveDayTab(null);
     renderNowLine();
   }
   function showArtistsView(){
@@ -210,6 +216,7 @@
     myScheduleBtn.classList.remove('active');
     artistsBtn.classList.add('active');
     aboutBtn.classList.remove('active');
+    setActiveDayTab(null);
     buildArtistsList();
   }
   function showAboutView(){
@@ -221,6 +228,7 @@
     myScheduleBtn.classList.remove('active');
     artistsBtn.classList.remove('active');
     aboutBtn.classList.add('active');
+    setActiveDayTab(null);
     document.getElementById('appVersionLabel').textContent = APP_VERSION;
   }
 
@@ -250,16 +258,36 @@
 
   document.getElementById('pageTitle').addEventListener('click', goToNow);
 
+  const dayTabButtons = {};
+
+  function setActiveDayTab(activeDay){
+    days.forEach(d => dayTabButtons[d].classList.toggle('active', d === activeDay));
+  }
+
+  // Which day's band the grid is currently scrolled to — used both right
+  // after a day-tab click and continuously while the user free-scrolls, so
+  // the highlighted tab always matches what's actually in view rather than
+  // just whichever tab was last clicked.
+  function currentGridDay(){
+    const h = gg.startHour + document.getElementById('gridScroll').scrollLeft / PX_PER_HOUR;
+    for(const d of days){
+      if(h < gg.bands[d].end) return d;
+    }
+    return days[days.length - 1];
+  }
+
   days.forEach(d=>{
     const btn = document.createElement('button');
     btn.className = 'tab';
     btn.textContent = d;
     btn.onclick = ()=>{
       showGridView();
+      setActiveDayTab(d);
       const gs = document.getElementById('gridScroll');
       const targetX = hourToX(gg.bands[d].start) + LABEL_W;
       gs.scrollTo({left: Math.max(targetX - 40, 0), behavior:'smooth'});
     };
+    dayTabButtons[d] = btn;
     dayTabs.appendChild(btn);
   });
 
@@ -1017,6 +1045,12 @@
   });
   gridScroll.addEventListener('scroll', closeStarMenu);
   scheduleGridScroll.addEventListener('scroll', closeStarMenu);
+  // Keep the highlighted day tab in sync while free-scrolling the grid, not
+  // just right after tapping a tab — e.g. scrolling from Friday into
+  // Saturday's 09:00 should hand the highlight to Saturday.
+  gridScroll.addEventListener('scroll', ()=>{
+    if(currentView === 'grid') setActiveDayTab(currentGridDay());
+  });
 
   loadFavorites();
   build();
