@@ -837,5 +837,7 @@ const ARTIST_EXCLUDE = [
   'Life Drawing with Sophia Shuvalova',
   'Morning Flow with Andy Kobelinsky',
   'Soundbath',
+  'Soundbath with Michelle Cade',
+  'Soundbath with Veronika',
   'Thai Masage workshop with Paul Brum',
 ];
