@@ -832,4 +832,10 @@ const ARTIST_EXCLUDE = [
   'Flow and Gong with Lucia Jiminez & Julim',
   'Harry & Dan present Tea Dance',
   'Swing & Dine',
+  'Breath to Uplift with GiGi',
+  'Breathwork Breath to Restore',
+  'Life Drawing with Sophia Shuvalova',
+  'Morning Flow with Andy Kobelinsky',
+  'Soundbath',
+  'Thai Masage workshop with Paul Brum',
 ];
