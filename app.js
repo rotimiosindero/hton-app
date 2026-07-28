@@ -1,69 +1,4 @@
 (function(){
-  // ---------- Password gate (soft deterrent only — this is a static site, so
-  // data.js and the rendered page are always publicly fetchable regardless.
-  // This just keeps casual visitors from landing on the content directly.) ----------
-  const PASSGATE_HASH = '415e876821dbe332e31322627ed2588145c74f349133bd715f29486be0a1a1d6';
-  // Fallback only: crypto.subtle needs a secure context (https, or http://localhost).
-  // Plain http:// on a LAN IP (e.g. testing from a phone against a dev machine) has
-  // no access to it at all, so the hash check would silently throw with no visible
-  // error. This keeps the gate functional there too — no weaker in practice, since
-  // the hash above is just as easy to look up in the page source either way.
-  const PASSGATE_PLAINTEXT_FALLBACK = 'LaLaLand2026';
-  const PASSGATE_KEY = 'houghton-unlocked-v1';
-  async function sha256Hex(text){
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-  const passGate = document.getElementById('passGate');
-  const passGateForm = document.getElementById('passGateForm');
-  const passGateInput = document.getElementById('passGateInput');
-  const passGateError = document.getElementById('passGateError');
-  let alreadyUnlocked = false;
-  try{ alreadyUnlocked = localStorage.getItem(PASSGATE_KEY) === '1'; }catch(err){}
-  if(alreadyUnlocked) passGate.classList.add('unlocked');
-  passGateForm.addEventListener('submit', async ev=>{
-    ev.preventDefault();
-    let matches;
-    if(window.crypto && window.crypto.subtle){
-      matches = (await sha256Hex(passGateInput.value)) === PASSGATE_HASH;
-    } else {
-      matches = passGateInput.value === PASSGATE_PLAINTEXT_FALLBACK;
-    }
-    if(matches){
-      passGateError.style.display = 'none';
-      passGate.classList.add('unlocked');
-      try{ localStorage.setItem(PASSGATE_KEY, '1'); }catch(err){}
-    } else {
-      passGateError.style.display = 'block';
-      passGateInput.value = '';
-      passGateInput.focus();
-    }
-  });
-
-  // ---------- Request access (no backend, so this just hands off to the
-  // visitor's own mail app with the message pre-filled) ----------
-  const requestAccessForm = document.getElementById('requestAccessForm');
-  const requestName = document.getElementById('requestName');
-  const requestSource = document.getElementById('requestSource');
-  document.getElementById('requestAccessOpenBtn').addEventListener('click', ()=>{
-    passGateForm.style.display = 'none';
-    requestAccessForm.style.display = '';
-    requestName.focus();
-  });
-  document.getElementById('requestAccessCancelBtn').addEventListener('click', ()=>{
-    requestAccessForm.style.display = 'none';
-    passGateForm.style.display = '';
-    passGateInput.focus();
-  });
-  requestAccessForm.addEventListener('submit', ev=>{
-    ev.preventDefault();
-    const subject = encodeURIComponent('Houghton 2026 app — access request');
-    const body = encodeURIComponent(
-      `Name: ${requestName.value.trim()}\nHow they heard about the app: ${requestSource.value.trim()}`
-    );
-    window.location.href = `mailto:hton.app@gmail.com?subject=${subject}&body=${body}`;
-  });
-
   const days = HTON_DATA.days;
   const stages = HTON_DATA.stages;
   const entries = HTON_DATA.entries;
@@ -170,7 +105,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.5.9';
+  const APP_VERSION = '0.5.11';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's

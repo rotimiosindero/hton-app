@@ -26,28 +26,6 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="passgate" id="passGate">
-  <div class="passgate-card">
-    <h2>Houghton <span>2026</span></h2>
-
-    <form id="passGateForm">
-      <p>Enter the password to continue</p>
-      <input type="password" id="passGateInput" placeholder="Password" autocomplete="off" autofocus />
-      <button type="submit">Enter</button>
-      <p class="passgate-error" id="passGateError" style="display:none;">Wrong password, try again</p>
-      <button type="button" class="passgate-link" id="requestAccessOpenBtn">Request Access</button>
-    </form>
-
-    <form id="requestAccessForm" style="display:none;">
-      <p>Tell me who you are and how you heard about this, and I'll send you the password.</p>
-      <input type="text" id="requestName" placeholder="Your name" autocomplete="name" required />
-      <input type="text" id="requestSource" placeholder="How did you hear about this app?" required />
-      <button type="submit">Send request</button>
-      <button type="button" class="passgate-link" id="requestAccessCancelBtn">Back to password</button>
-    </form>
-  </div>
-</div>
-
 <div class="dawnbar"></div>
 <header>
   <div class="titlerow">
@@ -121,7 +99,7 @@
         <button class="theme-toggle-btn" data-theme-mode="dark">Dark</button>
       </div>
     </div>
-    <p>If you found this app useful, please help support the project with a drink or two.</p>
+    <p>If you found this app useful, please help support the project with a beer.</p>
     <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" integrity="sha384-OibPdNn05smfqAFi21q8C4YkzZLEjwXs7kTtiqrJwOv7PtZefVaGPzKgX4rJfvWv" crossorigin="anonymous" data-name="bmc-button" data-slug="hton.app" data-color="#FFDD00" data-emoji="🍻"  data-font="Cookie" data-text="Buy me a beer" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
     <p class="about-version">Version <strong id="appVersionLabel">—</strong></p>
   </div>

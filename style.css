@@ -56,41 +56,6 @@ body{
 .dawnbar{ height:4px; width:100%;
   background:linear-gradient(90deg,#2A140D 0%, var(--forest) 30%, var(--amber) 65%, #F0C9A0 100%); }
 
-.passgate{
-  position:fixed; inset:0; background:var(--bg); z-index:100;
-  display:flex; align-items:center; justify-content:center; padding:20px;
-}
-.passgate.unlocked{ display:none; }
-.passgate-card{
-  background:var(--bg-card); border:1px solid var(--line-strong); border-radius:12px;
-  padding:28px; max-width:320px; width:100%; text-align:center;
-}
-.passgate-card h2{
-  font-family:var(--font-sans); font-weight:800; text-transform:uppercase; font-size:20px;
-  margin:0 0 6px 0;
-}
-.passgate-card h2 span{ color:var(--amber); }
-.passgate-card p{ color:var(--text-muted); font-size:11px; margin:0 0 16px 0; }
-.passgate-card input{
-  width:100%; background:var(--bg-raised); border:1px solid var(--line); color:var(--text);
-  /* 16px minimum — anything smaller makes iOS Safari auto-zoom the viewport on
-     focus, and since this field autofocuses on launch, that zoom would stick
-     around for the rest of the session. */
-  font-family:var(--font-sans); font-size:16px; padding:10px 12px; border-radius:8px; outline:none;
-  margin-bottom:12px; text-align:center; -webkit-appearance:none; appearance:none;
-}
-.passgate-card input:focus{ border-color:var(--amber); }
-.passgate-card button{
-  width:100%; background:var(--amber); color:#241a0a; border:none; font-weight:700;
-  font-family:var(--font-sans); font-size:12px; padding:10px; border-radius:8px; cursor:pointer;
-}
-.passgate-card button:hover{ filter:brightness(1.08); }
-.passgate-error{ color:var(--dusk); font-size:10.5px; margin:10px 0 0 0; }
-.passgate-card button.passgate-link{
-  width:auto; background:none; color:var(--amber); font-weight:600; font-size:11px;
-  padding:10px 0 0 0; text-decoration:underline; text-underline-offset:2px;
-}
-.passgate-card button.passgate-link:hover{ filter:none; opacity:0.75; }
 header{
   background:var(--bg); border-bottom:1px solid var(--line);
   padding:16px max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
