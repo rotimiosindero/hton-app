@@ -410,6 +410,34 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
   text-decoration:underline; text-underline-offset:2px;
 }
 
+/* Map view */
+.mapview{
+  display:none; flex-direction:column; height:calc(100vh - 168px);
+  height:calc(100dvh - 168px);
+}
+.map-toolbar{ display:flex; gap:8px; padding:16px 20px 12px 20px; flex-shrink:0; }
+.map-zoom-btn{
+  background:var(--bg-raised); border:1px solid var(--line); color:var(--text-muted);
+  font-family:var(--font-mono); font-size:14px; font-weight:700;
+  width:36px; height:32px; border-radius:6px; cursor:pointer;
+}
+.map-zoom-btn:hover{ color:var(--text); border-color:var(--line-strong); }
+#mapResetBtn{
+  width:auto; padding:0 14px; font-size:10px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.05em;
+}
+.map-viewport{
+  position:relative; flex:1; min-height:0; overflow:hidden;
+  background:var(--bg-raised); margin:0 20px 20px 20px; border-radius:8px;
+  /* Hands pinch/pan gestures entirely to our own pointer handlers instead of
+     the browser scrolling the page or zooming the whole viewport. */
+  touch-action:none;
+}
+#mapImage{
+  position:absolute; top:0; left:0; width:100%; height:auto;
+  transform-origin:0 0; user-select:none; -webkit-user-drag:none;
+}
+
 ::-webkit-scrollbar{ width:10px; height:10px; }
 ::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:5px; }
 ::-webkit-scrollbar-track{ background:var(--bg); }

@@ -1,7 +1,7 @@
 // Bump this version string whenever any cached file changes (including data.js
 // for a new year's lineup) so returning visitors get the fresh copy instead of
 // being stuck on an old cached version.
-const CACHE_NAME = 'houghton26-0.5.6';
+const CACHE_NAME = 'houghton26-0.5.7';
 
 const PRECACHE_URLS = [
   './',
@@ -12,7 +12,8 @@ const PRECACHE_URLS = [
   './artists.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './HTN26-MAP-140x140cm-1-2048x2048.png'
 ];
 
 self.addEventListener('install', event => {

@@ -53,6 +53,11 @@ const ARTIST_DATA = {
     "soundcloudUrl": "https://soundcloud.com/resident-advisor/ra681-aurora-halal",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F637818162&show_artwork=true\"></iframe>"
   },
+  "Baby Vulture": {
+    "description": "Stage name of Daniela Huerta, a Mexican-born, Berlin-based multidisciplinary artist whose practice spans performance art, multimedia projects and sound design alongside her DJing, with collaborations including Soundwalk Collective and Cornerbred.",
+    "soundcloudUrl": "https://soundcloud.com/the-ransom-note/baby-vulture-the-shine-a-light-on-mix",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F859698685&show_artwork=true\"></iframe>"
+  },
   "Bas Ibellini": {
     "description": "London DJ and producer with two decades on the international circuit, having played fabric, DC10 and Output New York, and founder of the Peculiar party.",
     "soundcloudUrl": "https://soundcloud.com/fabric/bas-ibellini-fabric-x-tuskegee-promo-mix",
@@ -105,6 +110,11 @@ const ARTIST_DATA = {
     "description": "UK-schooled, Berlin-based DJ and producer who earned residencies at Leeds' Mint Club and London's fabric before relocating to Berlin in 2016; known for tight, minimalist productions and a Rinse FM residency.",
     "soundcloudUrl": "https://soundcloud.com/rinsefm/brunoschmidt211023",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F1647341530&show_artwork=true\"></iframe>"
+  },
+  "C.A.R": {
+    "description": "Recording name of Chloé Raunet, a Canadian-born, London-based artist whose sound blends glacial electronica, post-punk and introspective pop across three albums for Kill The DJ and Ransom Note; known for hypnotic live performances and a monthly NTS Radio show.",
+    "soundcloudUrl": "https://soundcloud.com/c_a_r/c-a-r-angelina-manfredas-vocal",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F188456227&show_artwork=true\"></iframe>"
   },
   "Calibre": {
     "description": "Northern Irish drum and bass producer (Dominick Martin) celebrated for a soulful, liquid-funk sound across a huge back catalogue; held a sold-out residency at XOYO and released the FabricLive.68 mix compilation.",
@@ -266,10 +276,10 @@ const ARTIST_DATA = {
     "soundcloudUrl": "https://soundcloud.com/enricafalqui",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"450\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Fusers%2F175023&show_artwork=true\"></iframe>"
   },
-  "ETAPE and Baby Vulture": {
-    "description": "A pairing of Amsterdam-based producer Etape and Berlin-based multidisciplinary artist Baby Vulture (Daniela Huerta), whose own practice spans sound design, performance art and collaborations including Soundwalk Collective and Cornerbred.",
-    "soundcloudUrl": "https://soundcloud.com/the-ransom-note/baby-vulture-the-shine-a-light-on-mix",
-    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F859698685&show_artwork=true\"></iframe>"
+  "E/Tape": {
+    "description": "Amsterdam-based DJ and producer (also recording as Crinkhoff and Stëfän Dänīëls) who has risen through the Dutch house and techno underground since the early 2020s, playing venues including Shelter Amsterdam and the Wildeburg festival with deep, groove-driven sets.",
+    "soundcloudUrl": "https://soundcloud.com/etape-amsterdam",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"450\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Fusers%2F1111632574&show_artwork=true\"></iframe>"
   },
   "Facta & K-Lone": {
     "description": "London's Facta and Bristol's K-LONE co-run the Wisdom Teeth label, blending New Age-inflected ambient textures with loopy tech house and the swung, dubby rhythms associated with Bristol's club sound.",
@@ -315,6 +325,11 @@ const ARTIST_DATA = {
     "description": "A San Diego-based house and tech-house duo formed by Eric Galaviz (Hipp-E) and Brian Varga (Halo), celebrated for dub-inflected productions and a landmark residency at London's fabric that helped bridge American house with UK club culture.",
     "soundcloudUrl": "https://soundcloud.com/hipp-e",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"450\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Fusers%2F246538338&show_artwork=true\"></iframe>"
+  },
+  "Hackney Electronica": {
+    "description": "London trio formed during lockdown by Quinn Whalley of Paranoid London, producer Unai Trotti of Cartulis Music, and engineer/musician Margo Broom. Their debut EP Synaptic Shadows, released on Dark Entries, channels acidic, rave-inflected electro and hypnotic breakbeats born from late-night studio sessions.",
+    "soundcloudUrl": "https://soundcloud.com/darkentriesrecords/hackney-electronica-synaptic-shadows-clips",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2058886340&show_artwork=true\"></iframe>"
   },
   "Hamish & Toby": {
     "description": "A Leeds-formed UK DJ duo known for long, genre-roaming sets that weave decades of unpredictable dance music into one unmistakable flow, with regular appearances at festivals including Glastonbury, Dimensions and Houghton.",
@@ -365,6 +380,11 @@ const ARTIST_DATA = {
     "description": "A UK DJ and producer active since the mid-2000s, releasing across labels such as Fleeting Wax and Bahnsteig 23, and known for playful, wide-ranging sets that keep a party going from dusk till dawn.",
     "soundcloudUrl": "https://soundcloud.com/the-ransom-note/jonny-rock-the-ransom-note-mix",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F411075027&show_artwork=true\"></iframe>"
+  },
+  "Josh Caffe": {
+    "description": "London DJ, vocalist and producer best known as the frontman of house-techno duo Paranoid London. Runs the Love Child party at Fabric and released his debut solo album Poppa Zesque on Erol Alkan's Phantasy label in 2023.",
+    "soundcloudUrl": "https://soundcloud.com/josh-caffe/josh-caffe-do-you-wanna-take",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F1211400265&show_artwork=true\"></iframe>"
   },
   "Josh T & Dr Banana": {
     "description": "A back-to-back set featuring Dr Banana, a UK selector and label boss whose deep knowledge of vintage UK garage, house and disco has made him a respected digger and Resident Advisor podcast contributor, alongside Josh T.",
@@ -443,6 +463,11 @@ const ARTIST_DATA = {
     "description": "Foundational figure in Berlin electronic music, co-founder of Basic Channel and Rhythm & Sound with Moritz von Oswald, and founder of the Hard Wax record shop that helped shape the city's early techno scene; widely credited as an originator of dub techno.",
     "soundcloudUrl": "https://soundcloud.com/resident-advisor/ra-1000-mark-ernestus",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2151848808&show_artwork=true\"></iframe>"
+  },
+  "Mathew Jonson": {
+    "description": "Vancouver-raised, now Lisbon-based minimal techno mainstay who trained in classical piano and jazz drumming before breaking through on Perlon, Kompakt and M_nus. Co-founder of the Wagon Repair label and a member of acclaimed live act Cobblestone Jazz, alongside solo albums including Agents of Time and Her Blurry Pictures.",
+    "soundcloudUrl": "https://soundcloud.com/mathew-jonson/typerope",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F118974895&show_artwork=true\"></iframe>"
   },
   "Melina Serser": {
     "description": "Uruguayan-born DJ, based in Barcelona since 2019, whose downtempo, hypnotic sets draw on dub, trip-hop, ambient and global rhythms; also curated her own listening-session events, Hanuk and Irradia.",
@@ -783,10 +808,14 @@ const ARTIST_ALIASES = {
   'Al Wooton (DJ Set)': 'Al Wooton',
   'Al Wooton (Live)': 'Al Wooton',
   'Aurora Halal (Live)': 'Aurora Halal',
+  'C.A.R (Live)': 'C.A.R',
   'Deadbeat (DJ Set)': 'Deadbeat',
   'Deadbeat (Live)': 'Deadbeat',
   'Gideon (reggae set)': 'Gideon',
   'Greg Paulus (Live)': 'Greg Paulus',
+  'Hackney Electronica (Live)': 'Hackney Electronica',
+  'Josh Caffe (Live)': 'Josh Caffe',
+  'Mathew Jonson (Live)': 'Mathew Jonson',
   'Midland (Ambient Set)': 'Midland',
   'Paramida (Balearic Set)': 'Paramida',
   'Peach (R&B Set)': 'Peach',
@@ -813,6 +842,7 @@ const ARTIST_SPLITS = {
   'Baby Culture & E/Tape': ['Baby Culture', 'E/Tape'],
   'Cedric Woo & Belle Bête': ['Cedric Woo', 'Belle Bête'],
   'Claude & Krishan': ['Claude', 'Krishan'],
+  'ETAPE and Baby Vulture': ['E/Tape', 'Baby Vulture'],
   'Hamish & Toby & XDB': ['Hamish & Toby', 'XDB'],
   'Howie B & Hiraki Sawa (live)': ['Howie B', 'Hiraki Sawa'],
   'Jane Fitz & Paquita Gordon': ['Jane Fitz', 'Paquita Gordon'],

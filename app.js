@@ -165,11 +165,12 @@
   const dayTabs = document.getElementById('dayTabs');
   const scheduleView = document.getElementById('scheduleView');
   const artistsView = document.getElementById('artistsView');
+  const mapView = document.getElementById('mapView');
   const aboutView = document.getElementById('aboutView');
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '0.5.6';
+  const APP_VERSION = '0.5.7';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -181,9 +182,11 @@
     document.getElementById('gridScroll').style.display = '';
     scheduleView.style.display = 'none';
     artistsView.style.display = 'none';
+    mapView.style.display = 'none';
     aboutView.style.display = 'none';
     myScheduleBtn.classList.remove('active');
     artistsBtn.classList.remove('active');
+    mapBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
     // Restore whichever day tab matches the grid's current scroll position —
     // it may have been cleared while another tab (My Hton/Artists/About) was
@@ -200,9 +203,11 @@
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'flex';
     artistsView.style.display = 'none';
+    mapView.style.display = 'none';
     aboutView.style.display = 'none';
     myScheduleBtn.classList.add('active');
     artistsBtn.classList.remove('active');
+    mapBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
     updateScheduleDayHighlight();
     renderNowLine();
@@ -212,21 +217,38 @@
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'none';
     artistsView.style.display = 'flex';
+    mapView.style.display = 'none';
     aboutView.style.display = 'none';
     myScheduleBtn.classList.remove('active');
     artistsBtn.classList.add('active');
+    mapBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
     setActiveDayTab(null);
     buildArtistsList();
+  }
+  function showMapView(){
+    currentView = 'map';
+    document.getElementById('gridScroll').style.display = 'none';
+    scheduleView.style.display = 'none';
+    artistsView.style.display = 'none';
+    mapView.style.display = 'flex';
+    aboutView.style.display = 'none';
+    myScheduleBtn.classList.remove('active');
+    artistsBtn.classList.remove('active');
+    mapBtn.classList.add('active');
+    aboutBtn.classList.remove('active');
+    setActiveDayTab(null);
   }
   function showAboutView(){
     currentView = 'about';
     document.getElementById('gridScroll').style.display = 'none';
     scheduleView.style.display = 'none';
     artistsView.style.display = 'none';
+    mapView.style.display = 'none';
     aboutView.style.display = 'flex';
     myScheduleBtn.classList.remove('active');
     artistsBtn.classList.remove('active');
+    mapBtn.classList.remove('active');
     aboutBtn.classList.add('active');
     setActiveDayTab(null);
     document.getElementById('appVersionLabel').textContent = APP_VERSION;
@@ -325,6 +347,12 @@
   };
   dayTabs.appendChild(artistsBtn);
 
+  const mapBtn = document.createElement('button');
+  mapBtn.className = 'tab';
+  mapBtn.textContent = 'Map';
+  mapBtn.onclick = showMapView;
+  dayTabs.appendChild(mapBtn);
+
   const aboutBtn = document.createElement('button');
   aboutBtn.className = 'tab';
   aboutBtn.textContent = 'About';
@@ -354,6 +382,110 @@
   try{ savedScheduleMode = localStorage.getItem(SCHEDULE_MODE_KEY) || 'list'; }
   catch(err){ savedScheduleMode = 'list'; }
   applyScheduleMode(savedScheduleMode);
+
+  // ---------- Map (pinch/scroll-to-zoom, drag-to-pan festival site map) ----------
+  const mapViewport = document.getElementById('mapViewport');
+  const mapImage = document.getElementById('mapImage');
+  const MAP_MIN_SCALE = 1;
+  const MAP_MAX_SCALE = 8;
+  let mapScale = 1, mapX = 0, mapY = 0;
+
+  function clampMapTransform(){
+    const vw = mapViewport.clientWidth, vh = mapViewport.clientHeight;
+    // #mapImage is width:100% (so its unscaled/base size always equals the
+    // viewport's own box), which keeps this math independent of the image's
+    // native pixel dimensions.
+    const scaledW = vw * mapScale, scaledH = vw * mapScale;
+    mapX = scaledW <= vw ? 0 : Math.min(0, Math.max(vw - scaledW, mapX));
+    mapY = scaledH <= vh ? 0 : Math.min(0, Math.max(vh - scaledH, mapY));
+  }
+  function applyMapTransform(){
+    mapImage.style.transform = `translate(${mapX}px, ${mapY}px) scale(${mapScale})`;
+  }
+  // Rescales around a fixed point (cursor position, pinch midpoint, or the
+  // viewport centre for the toolbar buttons) so that point stays under the
+  // finger/cursor instead of the image jumping around as it zooms.
+  function zoomAt(clientX, clientY, targetScale){
+    const rect = mapViewport.getBoundingClientRect();
+    const ax = clientX - rect.left, ay = clientY - rect.top;
+    const newScale = Math.min(MAP_MAX_SCALE, Math.max(MAP_MIN_SCALE, targetScale));
+    const ix = (ax - mapX) / mapScale, iy = (ay - mapY) / mapScale;
+    mapScale = newScale;
+    mapX = ax - ix * mapScale;
+    mapY = ay - iy * mapScale;
+    clampMapTransform();
+    applyMapTransform();
+  }
+
+  document.getElementById('mapZoomInBtn').addEventListener('click', ()=>{
+    const r = mapViewport.getBoundingClientRect();
+    zoomAt(r.left + r.width/2, r.top + r.height/2, mapScale * 1.6);
+  });
+  document.getElementById('mapZoomOutBtn').addEventListener('click', ()=>{
+    const r = mapViewport.getBoundingClientRect();
+    zoomAt(r.left + r.width/2, r.top + r.height/2, mapScale / 1.6);
+  });
+  document.getElementById('mapResetBtn').addEventListener('click', ()=>{
+    mapScale = 1; mapX = 0; mapY = 0;
+    applyMapTransform();
+  });
+
+  mapViewport.addEventListener('wheel', e=>{
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, mapScale * Math.exp(-e.deltaY * 0.001));
+  }, {passive:false});
+
+  mapViewport.addEventListener('dblclick', e=>{
+    zoomAt(e.clientX, e.clientY, mapScale > MAP_MIN_SCALE * 1.5 ? MAP_MIN_SCALE : 3);
+  });
+
+  // Pointer Events unify mouse/touch/pen and report every active touch by
+  // its own pointerId, which is what makes tracking a two-finger pinch (as
+  // opposed to just a single-finger pan) straightforward here.
+  const mapPointers = new Map();
+  let mapPanFrom = null, mapPinchDist = null;
+  function pointerDist(a, b){ return Math.hypot(a.x - b.x, a.y - b.y); }
+
+  mapViewport.addEventListener('pointerdown', e=>{
+    mapViewport.setPointerCapture(e.pointerId);
+    mapPointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if(mapPointers.size === 1){
+      mapPanFrom = {x: e.clientX, y: e.clientY};
+    } else if(mapPointers.size === 2){
+      const pts = [...mapPointers.values()];
+      mapPinchDist = pointerDist(pts[0], pts[1]);
+    }
+  });
+  mapViewport.addEventListener('pointermove', e=>{
+    if(!mapPointers.has(e.pointerId)) return;
+    mapPointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if(mapPointers.size === 1 && mapPanFrom){
+      mapX += e.clientX - mapPanFrom.x;
+      mapY += e.clientY - mapPanFrom.y;
+      mapPanFrom = {x: e.clientX, y: e.clientY};
+      clampMapTransform();
+      applyMapTransform();
+    } else if(mapPointers.size === 2){
+      const pts = [...mapPointers.values()];
+      const dist = pointerDist(pts[0], pts[1]);
+      const mid = {x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2};
+      if(mapPinchDist) zoomAt(mid.x, mid.y, mapScale * (dist / mapPinchDist));
+      mapPinchDist = dist;
+    }
+  });
+  function endMapPointer(e){
+    mapPointers.delete(e.pointerId);
+    mapPinchDist = mapPointers.size === 2 ? mapPinchDist : null;
+    mapPanFrom = mapPointers.size === 1 ? [...mapPointers.values()][0] : null;
+  }
+  mapViewport.addEventListener('pointerup', endMapPointer);
+  mapViewport.addEventListener('pointercancel', endMapPointer);
+  // Non-standard Safari-only events — the only reliable way to stop iOS's own
+  // page-pinch-zoom gesture from also firing underneath our pointer handlers.
+  mapViewport.addEventListener('gesturestart', e => e.preventDefault());
+  mapViewport.addEventListener('gesturechange', e => e.preventDefault());
+
+  window.addEventListener('resize', ()=>{ clampMapTransform(); applyMapTransform(); });
 
   // ---------- Theme (auto mirrors the OS, or manually forced light/dark) ----------
   const THEME_KEY = 'houghton-theme-v1';
