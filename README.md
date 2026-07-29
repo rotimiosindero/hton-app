@@ -82,6 +82,7 @@ returning visitors get the new copy instead of a stale cached one.
 
 ## Version history
 
+- **v1.1.4** — fix Artists tab clear button rendering outside the search box
 - **v1.1.3** — add clear ('x') button to the Artists tab search, and fix artist
   name spelling: Gabriel Kwarteng → Gabrielle Kwarteng
 - **v1.1.2** — fix app failing to load with no signal (airplane mode)
