@@ -1,7 +1,7 @@
 // Bump this version string whenever any cached file changes (including data.js
 // for a new year's lineup) so returning visitors get the fresh copy instead of
 // being stuck on an old cached version.
-const CACHE_NAME = 'houghton26-1.1.1';
+const CACHE_NAME = 'houghton26-1.1.2';
 
 const PRECACHE_URLS = [
   './',
@@ -45,17 +45,37 @@ self.addEventListener('activate', event => {
 // Cache-first: instant loads and full offline support once the first visit
 // has completed. Falls back to the network for anything not precached.
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  // Only ever handle our own files. Third-party requests (Buy Me a Coffee,
+  // GoatCounter, SoundCloud embeds) are left entirely to the browser — there
+  // is nothing useful to cache, and intercepting them meant an offline
+  // failure came back through respondWith() as a broken response instead of
+  // a plain fast network error the page could shrug off.
+  if (new URL(request.url).origin !== self.location.origin) return;
+
   event.respondWith(
-    caches.match(event.request).then(cached => {
+    caches.match(request).then(cached => {
       if (cached) return cached;
-      return fetch(event.request).then(response => {
+      return fetch(request).then(response => {
         if (response.ok && response.type === 'basic') {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
         }
         return response;
-      }).catch(() => cached);
+      }).catch(() =>
+        // Offline and not precached. Every branch below must resolve to a real
+        // Response: respondWith() rejects on undefined, which is what turned a
+        // missing file into a hard "Failed to fetch" rather than a graceful miss.
+        (request.mode === 'navigate'
+          // A navigation must still land on the app shell. This also covers a
+          // shared link arriving with tracking params (hton.app/?fbclid=...),
+          // whose URL never matches the cached "/" exactly.
+          ? caches.match('./index.html')
+          : Promise.resolve(null)
+        ).then(shell => shell || new Response('', {status: 504, statusText: 'Offline'}))
+      );
     })
   );
 });

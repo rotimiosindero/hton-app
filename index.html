@@ -106,7 +106,18 @@
       </div>
     </div>
     <p>If you found this app useful, please help support the project with a beer.</p>
-    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" integrity="sha384-OibPdNn05smfqAFi21q8C4YkzZLEjwXs7kTtiqrJwOv7PtZefVaGPzKgX4rJfvWv" crossorigin="anonymous" data-name="bmc-button" data-slug="hton.app" data-color="#FFDD00" data-emoji="🍻"  data-font="Cookie" data-text="Buy me a beer" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    <!-- Deliberately a plain link, not Buy Me a Coffee's official button
+         script. That script is built on document.write(), so it only works as
+         a parser-blocking synchronous cross-origin script — with no signal
+         (airplane mode) parsing stalled here and data.js/artists.js/app.js
+         below never ran, leaving the page dead. Marking it async silently
+         breaks the widget instead (document.write is a no-op once parsing is
+         done), so there is no version of the widget that is safe offline.
+         This also drops a third-party script execution and the Google Font
+         it injected. -->
+    <a class="bmc-btn" href="https://buymeacoffee.com/hton.app" target="_blank" rel="noopener">
+      <span aria-hidden="true">&#127867;</span>Buy me a beer
+    </a>
     <p class="about-version">Version <strong id="appVersionLabel">—</strong></p>
   </div>
 </div>

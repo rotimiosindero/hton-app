@@ -268,10 +268,16 @@ input[type="search"]::-webkit-search-cancel-button{ display:none; }
 }
 .about-steps li::marker{ color:var(--amber); font-weight:700; }
 
-/* Shrinks BMC's whole injected button (not just font/padding) uniformly by
-   20%. Negative margin claws back the flow space the scale-down leaves
-   behind, since transform doesn't shrink the box's own layout footprint. */
-.about-card .bmc-btn-container{ transform:scale(0.8); margin:-6px 0; }
+/* Our own Buy Me a Coffee button (see the note in index.html for why this is
+   a plain link rather than their widget script). Scoped under .about-card so
+   it beats the `.about-card a` amber link colour. */
+.about-card .bmc-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  background:#FFDD00; color:#000; text-decoration:none;
+  font-family:var(--font-sans); font-size:13px; font-weight:700;
+  padding:9px 18px; border-radius:8px; margin:2px 0 8px 0;
+}
+.about-card .bmc-btn:hover{ filter:brightness(1.05); }
 .about-card .about-version{ font-family:var(--font-mono); margin-bottom:0; }
 .about-version strong{ color:var(--amber); }
 .theme-toggle-group{
