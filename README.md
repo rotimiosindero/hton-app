@@ -82,6 +82,7 @@ returning visitors get the new copy instead of a stale cached one.
 
 ## Version history
 
+- **v1.0.11** — fix artist name spelling: Gabriel Kwarteng → Gabrielle Kwarteng
 - **v1.0.0** — first public release
 - **v0.5.11** — remove password gate, tweak About page copy
 - **v0.5.9** — security hardening ahead of public release
