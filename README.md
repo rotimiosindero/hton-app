@@ -82,8 +82,10 @@ returning visitors get the new copy instead of a stale cached one.
 
 ## Version history
 
-- **v1.0.12** — add clear ('x') button to the Artists tab search, matching the timetable search
-- **v1.0.11** — fix artist name spelling: Gabriel Kwarteng → Gabrielle Kwarteng
+- **v1.1.3** — add clear ('x') button to the Artists tab search, and fix artist
+  name spelling: Gabriel Kwarteng → Gabrielle Kwarteng
+- **v1.1.2** — fix app failing to load with no signal (airplane mode)
+- **v1.1.1** — per-artist set schedule in Artists tab, plus tab-row scroll hints
 - **v1.0.0** — first public release
 - **v0.5.11** — remove password gate, tweak About page copy
 - **v0.5.9** — security hardening ahead of public release

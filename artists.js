@@ -3,6 +3,11 @@
 // houghton-timetable project notes) — anyone missing from this object still
 // shows up in the list, just without a bio/link yet.
 const ARTIST_DATA = {
+  ".VRIL": {
+    "description": "German-born, Portugal-based techno producer who performs under the deliberately anonymous alias .VRIL, active since 2011 with releases across Giegling, Delsin, Tresor and Ostgut Ton. Best known for the hypnotic live album Anima Mundi, originally issued as a Giegling cassette before a wider reissue; Resident Advisor called his sound \"sublime live techno with a subtle twist.\"",
+    "soundcloudUrl": "https://soundcloud.com/slam_djs/slamradio-651-vril",
+    "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2118620133&show_artwork=true\"></iframe>"
+  },
   "Aba Shanti-i": {
     "description": "UK sound system operator and dub selector, a fixture at Notting Hill Carnival since the early 1990s, known for heavyweight roots reggae and dub played through his own custom-built rig.",
     "soundcloudUrl": "https://soundcloud.com/platform/aba-shanti-i-boiler-room-x-notting-hill-carnival-2017-dj-set",

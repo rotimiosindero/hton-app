@@ -105,7 +105,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '1.0.12';
+  const APP_VERSION = '1.1.3';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -293,6 +293,22 @@
   aboutBtn.textContent = 'About';
   aboutBtn.onclick = showAboutView;
   dayTabs.appendChild(aboutBtn);
+
+  // ---------- Tab row scroll hints (fades + arrows showing there are more
+  // tabs off-screen, e.g. "Artists"/"Map"/"About" scrolled out of view on a
+  // narrow phone) ----------
+  const tabsHintLeft = document.getElementById('tabsScrollHintLeft');
+  const tabsHintRight = document.getElementById('tabsScrollHintRight');
+  function updateTabsScrollHints(){
+    const maxScroll = dayTabs.scrollWidth - dayTabs.clientWidth;
+    tabsHintLeft.classList.toggle('visible', dayTabs.scrollLeft > 1);
+    tabsHintRight.classList.toggle('visible', dayTabs.scrollLeft < maxScroll - 1);
+  }
+  dayTabs.addEventListener('scroll', updateTabsScrollHints);
+  window.addEventListener('resize', updateTabsScrollHints);
+  tabsHintLeft.addEventListener('click', ()=> dayTabs.scrollBy({left:-120, behavior:'smooth'}));
+  tabsHintRight.addEventListener('click', ()=> dayTabs.scrollBy({left:120, behavior:'smooth'}));
+  updateTabsScrollHints();
 
   const SCHEDULE_MODE_KEY = 'houghton-schedule-mode-v1';
   function applyScheduleMode(mode){
@@ -673,6 +689,7 @@
     block.title = `${e.name} \u00b7 ${stage} \u00b7 ${e.day} ${e.begin}\u2013${e.end}`
       + (favLevel ? ` \u00b7 ${FAV_LABELS[favLevel]}` : '');
     block.dataset.name = e.name.toLowerCase();
+    block.dataset.entryKey = key;
 
     if(width >= 46){
       block.innerHTML = `<span class="block-star" data-key="${key}" title="Favourite">${favLevel ? '\u2605' : '\u2606'}</span>
@@ -923,6 +940,27 @@
     return ARTIST_SPLITS[rawName] || [ARTIST_ALIASES[rawName] || rawName];
   }
 
+  // Every real set a given Artists-tab profile plays over the weekend, in
+  // day/time order — one artist can have several (a regular slot plus a
+  // differently-billed one, like Craig Richards' Electro/Reggae sets, or
+  // genuinely playing more than once).
+  const ARTIST_DAY_ORDER = {};
+  days.forEach((d,i)=>{ ARTIST_DAY_ORDER[d] = i; });
+  function entriesForArtist(profileName){
+    return entries
+      .filter(e => !e.name.startsWith('Talk:') && !ARTIST_EXCLUDE.includes(e.name))
+      .filter(e => resolveArtistProfiles(e.name).includes(profileName))
+      .sort((a,b) => (ARTIST_DAY_ORDER[a.day]-ARTIST_DAY_ORDER[b.day]) || (globalMin(a.day,a.begin)-globalMin(b.day,b.begin)));
+  }
+
+  // Tapping one of an artist's set times jumps straight to that exact block
+  // in the main grid — entryKey is unique per block, so this still finds the
+  // right one even when an artist plays more than once under the same name.
+  function goToArtistSet(key){
+    const block = document.querySelector(`#gridInner [data-entry-key="${CSS.escape(key)}"]`);
+    if(block) scrollToBlock(block);
+  }
+
   // Lets the "back" button in the Artists tab return to exactly where the
   // user was (day/scroll position, or My Hton's list/timetable + scroll)
   // before they followed a block's name to that artist's bio.
@@ -1015,41 +1053,56 @@
       head.type = 'button';
       head.className = 'artist-item-head';
       head.innerHTML = `<span class="artist-item-name">${escapeHtml(name)}</span>` +
-        (info ? '<span class="artist-item-chevron">&rsaquo;</span>'
-              : '<span class="artist-item-pending">Profile coming soon</span>');
+        '<span class="artist-item-chevron">&rsaquo;</span>';
       item.appendChild(head);
 
-      if(info){
-        const body = document.createElement('div');
-        body.className = 'artist-item-body';
-        body.style.display = 'none';
-        // Embeds are loaded lazily (only once a card is actually opened) rather
-        // than all at once when the list is built — with 100+ artists having a
-        // SoundCloud embed, eagerly mounting every iframe up front was loading
-        // that many cross-origin players simultaneously, which was heavy enough
-        // to crash/reload the app when installed as an iOS home-screen PWA.
-        body.innerHTML =
-          (info.description ? `<p class="artist-item-desc">${escapeHtml(info.description)}</p>` : '') +
-          (info.soundcloudEmbed ? '<div class="artist-embed-slot"></div>' : '') +
-          (info.soundcloudUrl ? `<a class="artist-item-link" href="${info.soundcloudUrl}" target="_blank" rel="noopener">Listen on SoundCloud</a>` : '');
-        item.appendChild(body);
-        const embedSlot = body.querySelector('.artist-embed-slot');
-        let embedLoaded = false;
-        head.addEventListener('click', ()=>{
-          const isOpen = body.style.display !== 'none';
-          if(!isOpen && embedSlot && !embedLoaded){
-            embedLoaded = true;
-            // The embed is a cross-origin SoundCloud iframe — offline, it just
-            // fails silently/blank rather than showing anything useful, so check
-            // connectivity upfront instead of letting the iframe attempt to load.
-            embedSlot.innerHTML = navigator.onLine
-              ? info.soundcloudEmbed
-              : '<p class="artist-embed-offline">This feature requires internet connection.</p>';
-          }
-          body.style.display = isOpen ? 'none' : '';
-          item.classList.toggle('open', !isOpen);
-        });
-      }
+      // Every artist gets an expandable body now — where/when they're
+      // playing is useful even before a bio has been researched.
+      const body = document.createElement('div');
+      body.className = 'artist-item-body';
+      body.style.display = 'none';
+      const sets = entriesForArtist(name);
+      const setsHtml = sets.length
+        ? `<div class="artist-item-sets">${sets.map(e => `
+            <button type="button" class="artist-item-set" data-entry-key="${escapeHtml(entryKey(e))}">
+              <span class="artist-item-set-day">${escapeHtml(e.day)}</span>
+              <span class="artist-item-set-stage">${escapeHtml(e.stage)}</span>
+              <span class="artist-item-set-time">${escapeHtml(e.begin)}–${escapeHtml(e.end)}</span>
+            </button>`).join('')}</div>`
+        : '';
+      // Embeds are loaded lazily (only once a card is actually opened) rather
+      // than all at once when the list is built — with 100+ artists having a
+      // SoundCloud embed, eagerly mounting every iframe up front was loading
+      // that many cross-origin players simultaneously, which was heavy enough
+      // to crash/reload the app when installed as an iOS home-screen PWA.
+      body.innerHTML =
+        (info?.description ? `<p class="artist-item-desc">${escapeHtml(info.description)}</p>`
+                            : '<p class="artist-item-desc artist-item-pending-note">Profile coming soon</p>') +
+        setsHtml +
+        (info?.soundcloudEmbed ? '<div class="artist-embed-slot"></div>' : '') +
+        (info?.soundcloudUrl ? `<a class="artist-item-link" href="${info.soundcloudUrl}" target="_blank" rel="noopener">Listen on SoundCloud</a>` : '');
+      item.appendChild(body);
+
+      body.querySelectorAll('.artist-item-set').forEach(btn=>{
+        btn.addEventListener('click', ()=> goToArtistSet(btn.dataset.entryKey));
+      });
+
+      const embedSlot = body.querySelector('.artist-embed-slot');
+      let embedLoaded = false;
+      head.addEventListener('click', ()=>{
+        const isOpen = body.style.display !== 'none';
+        if(!isOpen && embedSlot && !embedLoaded){
+          embedLoaded = true;
+          // The embed is a cross-origin SoundCloud iframe — offline, it just
+          // fails silently/blank rather than showing anything useful, so check
+          // connectivity upfront instead of letting the iframe attempt to load.
+          embedSlot.innerHTML = navigator.onLine
+            ? info.soundcloudEmbed
+            : '<p class="artist-embed-offline">This feature requires internet connection.</p>';
+        }
+        body.style.display = isOpen ? 'none' : '';
+        item.classList.toggle('open', !isOpen);
+      });
       container.appendChild(item);
     });
   }
