@@ -4,7 +4,18 @@
   const entries = HTON_DATA.entries;
   const gg = HTON_DATA.globalGrid; // {startHour, endHour, dayIndex, bands}
   const PX_PER_HOUR = 140;
-  const LABEL_W = 132;
+  // The sticky stage-label column's width is owned by CSS (--label-w), and the
+  // mobile media query shrinks it from 132px to 100px. Blocks and the ruler
+  // follow the CSS automatically (they sit inside .lane / a margin-left'd
+  // ruler), but the now-line is positioned in JS from the grid's left edge —
+  // so a hardcoded 132 put the line 32px (~14 minutes) too far right on every
+  // phone. Read the real value instead of keeping a second copy of it, and
+  // re-read on each call so rotating the phone across the 600px breakpoint
+  // stays correct.
+  function labelW(){
+    const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--label-w'));
+    return Number.isFinite(v) ? v : 132;
+  }
 
   const STAGE_COLORS = {
     'Derren Smart':'#C1441E','Pinters':'#8B5E34','Warehouse':'#9C7A3C','The Quarry':'#6E7B5C',
@@ -105,7 +116,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '1.1.2';
+  const APP_VERSION = '1.1.3';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -196,7 +207,7 @@
       gridScrollEl.scrollTo({left: 0, behavior:'smooth'});
       return;
     }
-    const targetX = hourToX(nowMin/60) + LABEL_W;
+    const targetX = hourToX(nowMin/60) + labelW();
     gridScrollEl.scrollTo({left: Math.max(targetX - 120, 0), behavior:'smooth'});
   }
 
@@ -257,7 +268,7 @@
       showGridView();
       setActiveDayTab(d);
       const gs = document.getElementById('gridScroll');
-      const targetX = hourToX(gg.bands[d].start) + LABEL_W;
+      const targetX = hourToX(gg.bands[d].start) + labelW();
       gs.scrollTo({left: Math.max(targetX - 40, 0), behavior:'smooth'});
     };
     dayTabButtons[d] = btn;
@@ -740,7 +751,7 @@
   function build(){
     const inner = document.getElementById('gridInner');
     inner.innerHTML = '';
-    inner.style.width = (LABEL_W + timelineWidth) + 'px';
+    inner.style.width = (labelW() + timelineWidth) + 'px';
 
     const corner = document.createElement('div');
     corner.className = 'corner';
@@ -783,7 +794,7 @@
   function buildMyHtonGrid(){
     const inner = document.getElementById('scheduleGridInner');
     inner.innerHTML = '';
-    inner.style.width = (LABEL_W + timelineWidth) + 'px';
+    inner.style.width = (labelW() + timelineWidth) + 'px';
 
     const corner = document.createElement('div');
     corner.className = 'corner';
@@ -833,13 +844,13 @@
     const gs = document.getElementById('gridScroll');
     const gsRect = gs.getBoundingClientRect();
     const elRect = el.getBoundingClientRect();
-    const targetLeft = parseFloat(el.style.left) + LABEL_W;
+    const targetLeft = parseFloat(el.style.left) + labelW();
     const targetTop = gs.scrollTop + (elRect.top - gsRect.top) - (gsRect.height/2 - elRect.height/2);
     showGridView();
     // 6 minutes of empty timeline visible before the match's start, in the space
     // actually visible past the sticky stage-label column (not hidden behind it).
     const searchPreRollPx = (6/60) * PX_PER_HOUR;
-    gs.scrollTo({left: Math.max(targetLeft - searchPreRollPx - LABEL_W, 0), top: Math.max(targetTop, 0), behavior:'smooth'});
+    gs.scrollTo({left: Math.max(targetLeft - searchPreRollPx - labelW(), 0), top: Math.max(targetTop, 0), behavior:'smooth'});
   }
 
   function goToSearchMatch(newIndex){
@@ -1102,7 +1113,13 @@
     const inner = document.getElementById(innerId);
     const min = nowGlobalMin();
     let line = document.getElementById(lineId);
-    if(min === null){
+    // nowGlobalMin only tells us "now" falls on a festival day, not that it
+    // falls inside the drawn timeline. Thursday daytime (09:00 until the
+    // 17:00 first set) sits before it, and Monday 03:00-09:00 after the last
+    // set sits past the end — both used to place the line outside the grid,
+    // where it either hid behind the stage labels or added phantom scroll
+    // space past Sunday. No line at all is the honest answer at those times.
+    if(min === null || min/60 < gg.startHour || min/60 > gg.endHour){
       if(line) line.remove();
       return;
     }
@@ -1112,7 +1129,7 @@
       line.id = lineId;
       inner.appendChild(line);
     }
-    line.style.left = (LABEL_W + hourToX(min/60)) + 'px';
+    line.style.left = (labelW() + hourToX(min/60)) + 'px';
     line.style.height = inner.scrollHeight + 'px';
   }
   function renderNowLine(){
@@ -1204,6 +1221,16 @@
 
   setInterval(renderNowLine, 30000);
   window.addEventListener('resize', renderNowLine);
+  // The 30s interval alone is not enough on a phone: iOS and Android throttle
+  // or freeze timers entirely while the screen is locked or the app is
+  // backgrounded. Pulling your phone out of your pocket mid-festival is the
+  // main way this app gets used, so redraw the line the moment we are visible
+  // again rather than leaving a stale one until the next tick. pageshow also
+  // covers iOS restoring a frozen standalone PWA from its page cache.
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden) renderNowLine();
+  });
+  window.addEventListener('pageshow', renderNowLine);
 
   // ---------- Offline support ----------
   if('serviceWorker' in navigator){
