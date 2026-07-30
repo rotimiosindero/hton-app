@@ -822,10 +822,13 @@ const ARTIST_ALIASES = {
   'Decius Live': 'Decius',
   'Cameron': 'Cameron Cullen',
   'Craig Richards (Electro Set)': 'Craig Richards',
-  'Craig Richard (Reggae Set)': 'Craig Richards',
-  'Al Wooton (DJ Set)': 'Al Wooton',
-  'Al Wooton (Live)': 'Al Wooton',
+  'Craig Richards (Reggae Set)': 'Craig Richards',
+  'Al Wootton (DJ Set)': 'Al Wootton',
+  'Al Wootton (Live)': 'Al Wootton',
   'Aurora Halal (Live)': 'Aurora Halal',
+  '.VRIL (Live)': '.VRIL',
+  "Nik Bartsch's Ronin (Live)": 'Nik Bartsch',
+  'Nik Bartsch (Solo Piano)': 'Nik Bartsch',
   // Both Friday Pinters billings are the same duo: the late live set and the
   // daytime ambient set that replaced MAGUIRE's solo slot.
   'Awkward Moments (Live)': 'Awkward Moments',
