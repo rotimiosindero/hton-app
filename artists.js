@@ -53,6 +53,9 @@ const ARTIST_DATA = {
     "soundcloudUrl": "https://soundcloud.com/astrangelyisolatedplace/isolatedmix-73-astral-industries",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F347257607&show_artwork=true\"></iframe>"
   },
+  "Awkward Moments": {
+    "description": "London duo of producer Mimi Xu and multi-instrumentalist and vocalist MAGUIRE, working together as Awkward Moments since 2018. Their audiovisual live shows move between rave-facing electronics, dark pop and ambient neo-classical drift, staged with costume, film and projection. They premiered their debut album An Entropic Cycle at Houghton."
+  },
   "Aurora Halal": {
     "description": "Brooklyn techno producer and DJ, founder of the Mutual Dreaming party series and co-founder of the Sustain-Release festival, known for hardware-driven, psychedelic sets.",
     "soundcloudUrl": "https://soundcloud.com/resident-advisor/ra681-aurora-halal",
@@ -823,6 +826,10 @@ const ARTIST_ALIASES = {
   'Al Wooton (DJ Set)': 'Al Wooton',
   'Al Wooton (Live)': 'Al Wooton',
   'Aurora Halal (Live)': 'Aurora Halal',
+  // Both Friday Pinters billings are the same duo: the late live set and the
+  // daytime ambient set that replaced MAGUIRE's solo slot.
+  'Awkward Moments (Live)': 'Awkward Moments',
+  'Awkward Moments (Ambient Live)': 'Awkward Moments',
   'C.A.R (Live)': 'C.A.R',
   'Danny Daze (A/V)': 'Danny Daze',
   'Deadbeat (DJ Set)': 'Deadbeat',

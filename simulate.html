@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Houghton 2026 — Time Simulator</title>
+<meta name="robots" content="noindex, nofollow" />
+
+<!-- Not linked from the real app anywhere — this is a testing tool for
+     checking the now-line on a real phone, not something festival-goers
+     should stumble into. It reuses the exact same index.html/style.css/app.js
+     as the live site; the only difference is the Date override below and the
+     control panel appended at the bottom, so what you see here is a true
+     preview of the real app's behaviour, not a separate mockup. -->
+
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" id="themeColorDark" content="#160D0A" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" id="themeColorLight" content="#FAF3E6" media="(prefers-color-scheme: light)" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+<link rel="stylesheet" href="style.css" />
+
+<style>
+  /* Simulator control panel — kept separate from style.css since this page
+     never ships as part of the real app experience. */
+  #simPanel{
+    position:fixed; left:0; right:0; bottom:0; z-index:500;
+    background:rgba(10,6,4,0.94); color:#F3E9D8; backdrop-filter:blur(6px);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom)) 12px;
+    box-shadow:0 -2px 12px rgba(0,0,0,0.4);
+  }
+  #simPanel.collapsed .simBody{ display:none; }
+  #simHeader{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  #simHeader strong{ font-size:12px; letter-spacing:0.03em; }
+  #simClock{ font-family:ui-monospace,Menlo,monospace; font-size:13px; color:#F0A868; }
+  #simToggle{
+    background:none; border:1px solid rgba(255,255,255,0.3); color:#F3E9D8;
+    border-radius:6px; font-size:11px; padding:4px 9px; cursor:pointer;
+  }
+  .simRow{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .simRow p{ width:100%; margin:0 0 2px 0; font-size:10px; text-transform:uppercase;
+    letter-spacing:0.06em; color:rgba(243,233,216,0.55); }
+  .simBtn{
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:#F3E9D8;
+    border-radius:6px; font-size:11px; padding:6px 10px; cursor:pointer; white-space:nowrap;
+  }
+  .simBtn:active{ background:rgba(255,255,255,0.2); }
+  .simBtn.active{ background:#B8451F; border-color:#B8451F; }
+</style>
+</head>
+<body>
+<div class="dawnbar"></div>
+<header>
+  <div class="titlerow">
+    <h1 id="pageTitle">Houghton <span>2026</span></h1>
+    <div class="search-wrap">
+      <input type="search" id="searchInput" placeholder="Search an act…" />
+      <button type="button" class="search-clear" id="searchClear" aria-label="Clear search">&times;</button>
+    </div>
+  </div>
+  <div class="toprow">
+    <div class="tabs" id="dayTabs"></div>
+    <span class="tabs-scroll-hint tabs-scroll-hint-left" id="tabsScrollHintLeft" aria-hidden="true">&lsaquo;</span>
+    <span class="tabs-scroll-hint tabs-scroll-hint-right" id="tabsScrollHintRight" aria-hidden="true">&rsaquo;</span>
+  </div>
+</header>
+
+<div class="detailbar" id="detailBar">Hover or tap a set for details</div>
+
+<div class="gridscroll" id="gridScroll">
+  <div class="gridinner" id="gridInner"></div>
+</div>
+
+<div class="scheduleview" id="scheduleView">
+  <div class="schedule-toggle" id="scheduleToggle">
+    <button class="schedule-toggle-btn active" data-mode="list">List</button>
+    <button class="schedule-toggle-btn" data-mode="timetable">Timetable</button>
+  </div>
+  <div id="scheduleList"></div>
+  <div class="gridscroll" id="scheduleGridScroll" style="display:none;">
+    <div class="gridinner" id="scheduleGridInner"></div>
+  </div>
+</div>
+
+<div class="artistsview" id="artistsView">
+  <button type="button" class="artist-back-btn" id="artistBackBtn" style="display:none;">&lsaquo; Back</button>
+  <div class="artists-search-wrap">
+    <div class="search-wrap">
+      <input type="search" id="artistsSearchInput" placeholder="Search an artist…" />
+      <button type="button" class="search-clear" id="artistsSearchClear" aria-label="Clear search">&times;</button>
+    </div>
+  </div>
+  <div id="artistsList"></div>
+</div>
+
+<div class="mapview" id="mapView">
+  <div class="map-toolbar">
+    <button type="button" class="map-zoom-btn" id="mapZoomOutBtn" aria-label="Zoom out">&minus;</button>
+    <button type="button" class="map-zoom-btn" id="mapResetBtn">Reset</button>
+    <button type="button" class="map-zoom-btn" id="mapZoomInBtn" aria-label="Zoom in">+</button>
+  </div>
+  <div class="map-viewport" id="mapViewport">
+    <img src="HTN26-MAP-140x140cm-1-2048x2048.png" alt="Houghton 2026 festival site map" id="mapImage" draggable="false" />
+  </div>
+</div>
+
+<div class="aboutview" id="aboutView">
+  <div class="about-card">
+    <p>This webapp will work offline when saved to your home screen. Open this page in your browser, then:</p>
+    <p class="theme-toggle-label">iOS (Safari)</p>
+    <ol class="about-steps">
+      <li>Tap the Share icon</li>
+      <li>Scroll down and tap 'Add to Home Screen'</li>
+    </ol>
+    <p class="theme-toggle-label">Android (Chrome)</p>
+    <ol class="about-steps">
+      <li>Tap the &#8942; menu (top right)</li>
+      <li>Tap 'Add to Home screen' or 'Install app'</li>
+    </ol>
+    <p>This webapp has no affiliation with Houghton Festival.</p>
+    <p>If you discover any bugs, or have any suggestions/feedback, drop me a line - <a href="mailto:hton.app@gmail.com">hton.app@gmail.com</a></p>
+    <button type="button" class="settings-row settings-row-new" id="whatsNewRow" style="display:none;">
+      <span>New Timetable Changes</span>
+      <span class="settings-row-chevron">&rsaquo;</span>
+    </button>
+    <button type="button" class="settings-row" id="stageOrderOpenBtn">
+      <span>Edit stage order</span>
+      <span class="settings-row-chevron">&rsaquo;</span>
+    </button>
+    <div class="theme-toggle-group">
+      <p class="theme-toggle-label">Appearance</p>
+      <div class="theme-toggle" id="themeToggle">
+        <button class="theme-toggle-btn" data-theme-mode="auto">Auto</button>
+        <button class="theme-toggle-btn" data-theme-mode="light">Light</button>
+        <button class="theme-toggle-btn" data-theme-mode="dark">Dark</button>
+      </div>
+    </div>
+    <p>If you found this app useful, please help support the project with a beer.</p>
+    <a class="bmc-btn" href="https://buymeacoffee.com/hton.app" target="_blank" rel="noopener">
+      <span aria-hidden="true">&#127867;</span>Buy me a beer
+    </a>
+    <p class="about-version">Version <strong id="appVersionLabel">—</strong></p>
+  </div>
+</div>
+
+<div class="stage-order-overlay" id="whatsNewOverlay">
+  <div class="stage-order-sheet-header">
+    <span id="whatsNewTitle">New Timetable</span>
+    <button type="button" class="whatsnew-close" id="whatsNewCloseBtn" aria-label="Close">&times;</button>
+  </div>
+  <p class="stage-order-hint" id="whatsNewNote"></p>
+  <div class="stage-order-list" id="whatsNewBody"></div>
+</div>
+
+<div class="stage-order-overlay" id="stageOrderOverlay">
+  <div class="stage-order-sheet-header">
+    <span>Stage order</span>
+    <button type="button" class="stage-order-done" id="stageOrderDoneBtn">Done</button>
+  </div>
+  <p class="stage-order-hint">Drag to rearrange — applies to both the main grid and My Hton.</p>
+  <div class="stage-order-list" id="stageOrderList"></div>
+</div>
+
+<div class="starmenu" id="starMenu">
+  <button data-level="1">★ Must see</button>
+  <button data-level="2">☆ Could see</button>
+  <button data-level="3">⇄ Clash backup</button>
+  <button data-level="0" class="clearbtn">Clear favourite</button>
+</div>
+
+<div id="simPanel">
+  <div id="simHeader">
+    <strong>⏱ TIME SIMULATOR</strong>
+    <span id="simClock">—</span>
+    <button type="button" id="simToggle">Hide</button>
+  </div>
+  <div class="simBody">
+    <div class="simRow" id="simSpeedRow">
+      <p>Speed</p>
+    </div>
+    <div class="simRow" id="simJumpRow">
+      <p>Jump to</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Fake clock, installed before data.js/app.js ever run ----------
+  (function(){
+    const RealDate = Date;
+    const params = new URLSearchParams(location.search);
+
+    // [year, month(0-based), day, hour, minute]. Matches app.js's own
+    // FESTIVAL_DATES: Thu 6 - Sun 9 Aug 2026.
+    const PRESETS = [
+      ['before',  'Mon before',        [2026,7,3,12,0]],
+      ['thu17',   'Thu 17:00 (start)', [2026,7,6,17,0]],
+      ['thu23',   'Thu 23:30',         [2026,7,6,23,30]],
+      ['fri02',   'Fri 02:00 (o/n)',   [2026,7,7,2,0]],
+      ['fri09',   'Fri 09:00 (roll)',  [2026,7,7,9,0]],
+      ['fri20',   'Fri 20:00',         [2026,7,7,20,0]],
+      ['sat14',   'Sat 14:00',         [2026,7,8,14,0]],
+      ['sat23',   'Sat 23:30',         [2026,7,8,23,30]],
+      ['sun06',   'Sun 06:00 (o/n)',   [2026,7,9,6,0]],
+      ['sun22',   'Sun 22:00',         [2026,7,9,22,0]],
+      ['mon02',   'Mon 02:59 (end)',   [2026,7,10,2,59]],
+      ['mon04',   'Mon 04:00 (after)', [2026,7,10,4,0]],
+      ['real',    'Real device time',  null],
+    ];
+    const presetMap = Object.fromEntries(PRESETS.map(p => [p[0], p]));
+
+    let activeKey = params.has('real') ? 'real' : (presetMap[params.get('t')] ? params.get('t') : 'sat23');
+    let speed = Math.max(0, parseFloat(params.get('speed') || '60')) || 60;
+    let fakeBase, realBase;
+
+    function anchor(key){
+      activeKey = key;
+      const preset = presetMap[key] || presetMap.sat23;
+      fakeBase = preset[2] ? new RealDate(...preset[2]).getTime() : RealDate.now();
+      realBase = RealDate.now();
+    }
+    anchor(activeKey);
+
+    function fakeNow(){
+      if(activeKey === 'real') return RealDate.now();
+      return fakeBase + (RealDate.now() - realBase) * speed;
+    }
+
+    class FakeDate extends RealDate {
+      constructor(...args){
+        if(args.length === 0) super(fakeNow());
+        else super(...args);
+      }
+      static now(){ return fakeNow(); }
+    }
+    window.Date = FakeDate;
+
+    window.__sim = {
+      PRESETS, activeKey: () => activeKey, speed: () => speed,
+      jump(key){ anchor(key); },
+      setSpeed(s){
+        // Re-anchor at the current fake instant first, so changing speed
+        // never causes a visible jump in the displayed time.
+        const now = fakeNow();
+        fakeBase = now; realBase = RealDate.now();
+        speed = s;
+      },
+      fakeNow,
+    };
+
+    // app.js redraws the now-line on its own 30s interval and on 'resize'.
+    // At high speed that would make the line leap in big steps rather than
+    // visibly glide, so force much more frequent redraws here regardless of
+    // speed, purely by reusing the same hook app.js already listens on.
+    setInterval(()=> window.dispatchEvent(new Event('resize')), 400);
+  })();
+</script>
+
+<script src="data.js"></script>
+<script src="whatsnew.js"></script>
+<script src="artists.js"></script>
+<script src="app.js"></script>
+
+<script>
+  // ---------- Control panel wiring (after app.js so the grid already exists) ----------
+  (function(){
+    const clockEl = document.getElementById('simClock');
+    const speedRow = document.getElementById('simSpeedRow');
+    const jumpRow = document.getElementById('simJumpRow');
+    const panel = document.getElementById('simPanel');
+    const toggle = document.getElementById('simToggle');
+
+    const SPEEDS = [1, 60, 600, 3600];
+    function speedLabel(s){
+      if(s === 1) return 'Real time';
+      if(s === 60) return '60x (1min = 1hr)';
+      if(s === 600) return '600x';
+      return '3600x (warp)';
+    }
+    SPEEDS.forEach(s => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'simBtn'; b.textContent = speedLabel(s);
+      b.addEventListener('click', ()=>{
+        window.__sim.setSpeed(s);
+        [...speedRow.querySelectorAll('.simBtn')].forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      });
+      if(s === window.__sim.speed()) b.classList.add('active');
+      speedRow.appendChild(b);
+    });
+
+    window.__sim.PRESETS.forEach(([key,label])=>{
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'simBtn'; b.textContent = label;
+      b.addEventListener('click', ()=>{
+        window.__sim.jump(key);
+        [...jumpRow.querySelectorAll('.simBtn')].forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        window.dispatchEvent(new Event('resize'));
+      });
+      if(key === window.__sim.activeKey()) b.classList.add('active');
+      jumpRow.appendChild(b);
+    });
+
+    function fmt(ms){
+      // Build with the real, un-overridden Date (the parent class FakeDate
+      // extends) so formatting a simulated instant doesn't itself get
+      // reinterpreted through the fake clock.
+      const real = new (Object.getPrototypeOf(window.Date))(ms);
+      return real.toDateString().slice(0,10) + ' ' +
+        String(real.getHours()).padStart(2,'0') + ':' +
+        String(real.getMinutes()).padStart(2,'0') + ':' +
+        String(real.getSeconds()).padStart(2,'0');
+    }
+    setInterval(()=>{ clockEl.textContent = fmt(window.__sim.fakeNow()); }, 200);
+
+    toggle.addEventListener('click', ()=>{
+      panel.classList.toggle('collapsed');
+      toggle.textContent = panel.classList.contains('collapsed') ? 'Show' : 'Hide';
+    });
+  })();
+</script>
+
+</body>
+</html>

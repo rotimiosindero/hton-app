@@ -98,6 +98,12 @@
     </ol>
     <p>This webapp has no affiliation with Houghton Festival.</p>
     <p>If you discover any bugs, or have any suggestions/feedback, drop me a line - <a href="mailto:hton.app@gmail.com">hton.app@gmail.com</a></p>
+    <!-- Hidden automatically when whatsnew.js has nothing to report, so next
+         year's lineup does not ship with a stale "New Timetable" link. -->
+    <button type="button" class="settings-row settings-row-new" id="whatsNewRow" style="display:none;">
+      <span>New Timetable Changes</span>
+      <span class="settings-row-chevron">&rsaquo;</span>
+    </button>
     <button type="button" class="settings-row" id="stageOrderOpenBtn">
       <span>Edit stage order</span>
       <span class="settings-row-chevron">&rsaquo;</span>
@@ -127,6 +133,18 @@
   </div>
 </div>
 
+<!-- Reuses the stage-order overlay pattern rather than being a separate page:
+     it stays inside the app so it works offline with no extra precached
+     document, and closing it returns you exactly where you were. -->
+<div class="stage-order-overlay" id="whatsNewOverlay">
+  <div class="stage-order-sheet-header">
+    <span id="whatsNewTitle">New Timetable</span>
+    <button type="button" class="whatsnew-close" id="whatsNewCloseBtn" aria-label="Close">&times;</button>
+  </div>
+  <p class="stage-order-hint" id="whatsNewNote"></p>
+  <div class="stage-order-list" id="whatsNewBody"></div>
+</div>
+
 <div class="stage-order-overlay" id="stageOrderOverlay">
   <div class="stage-order-sheet-header">
     <span>Stage order</span>
@@ -144,6 +162,7 @@
 </div>
 
 <script src="data.js"></script>
+<script src="whatsnew.js"></script>
 <script src="artists.js"></script>
 <script src="app.js"></script>
 
