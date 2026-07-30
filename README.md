@@ -82,6 +82,16 @@ returning visitors get the new copy instead of a stale cached one.
 
 ## Version history
 
+- **v1.1.5** — fix the now-line running about 14 minutes fast on phones (it
+  used a hardcoded label-column width instead of the real, narrower mobile
+  one), redraw it immediately on wake instead of waiting up to 30s (iOS/Android
+  freeze timers while locked or backgrounded), and stop it rendering outside
+  the drawn timeline
+- **v1.1.4** — fix Artists tab clear button rendering outside the search box
+- **v1.1.3** — add clear ('x') button to the Artists tab search, and fix artist
+  name spelling: Gabriel Kwarteng → Gabrielle Kwarteng
+- **v1.1.2** — fix app failing to load with no signal (airplane mode)
+- **v1.1.1** — per-artist set schedule in Artists tab, plus tab-row scroll hints
 - **v1.0.0** — first public release
 - **v0.5.11** — remove password gate, tweak About page copy
 - **v0.5.9** — security hardening ahead of public release

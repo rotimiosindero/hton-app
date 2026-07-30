@@ -301,7 +301,7 @@ const ARTIST_DATA = {
     "soundcloudUrl": "https://soundcloud.com/platform/freakenstein-loud",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F747655594&show_artwork=true\"></iframe>"
   },
-  "Gabriel Kwarteng": {
+  "Gabrielle Kwarteng": {
     "description": "Brooklyn-born, Berlin-based DJ (performs as Gabrielle Kwarteng) whose eclectic sets range from house to Afrobeat and Jersey club, with radio residencies across NTS, Refuge Worldwide and The Lot Radio.",
     "soundcloudUrl": "https://soundcloud.com/resident-advisor/ra837-gabrielle-kwarteng-20221606",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F1289498989&show_artwork=true\"></iframe>"

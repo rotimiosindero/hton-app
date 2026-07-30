@@ -116,7 +116,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '1.1.3';
+  const APP_VERSION = '1.1.5';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -1011,7 +1011,8 @@
   }
   function goToArtistBio(profileName){
     artistReturnState = captureReturnState();
-    document.getElementById('artistsSearchInput').value = '';
+    artistsSearchInput.value = '';
+    artistsSearchWrap.classList.remove('has-text');
     showArtistsView();
     const target = [...document.querySelectorAll('.artist-item')]
       .find(item => item.dataset.artist === profileName);
@@ -1028,6 +1029,20 @@
     document.getElementById('artistBackBtn').style.display = 'none';
     restoreReturnState(state);
   });
+
+  const artistsSearchInput = document.getElementById('artistsSearchInput');
+  const artistsSearchWrap = document.querySelector('.artists-search-wrap .search-wrap');
+  const artistsSearchClear = document.getElementById('artistsSearchClear');
+  function clearArtistsSearch(){
+    artistsSearchInput.value = '';
+    artistsSearchWrap.classList.remove('has-text');
+    artistsSearchInput.blur();
+    buildArtistsList();
+  }
+  artistsSearchInput.addEventListener('keydown', e=>{
+    if(e.key === 'Escape') clearArtistsSearch();
+  });
+  artistsSearchClear.addEventListener('click', clearArtistsSearch);
 
   function buildArtistsList(){
     const container = document.getElementById('artistsList');
@@ -1102,7 +1117,10 @@
       container.appendChild(item);
     });
   }
-  document.getElementById('artistsSearchInput').addEventListener('input', buildArtistsList);
+  artistsSearchInput.addEventListener('input', e=>{
+    artistsSearchWrap.classList.toggle('has-text', e.target.value.length > 0);
+    buildArtistsList();
+  });
   // Re-render so embeds switch between the real iframe and the offline
   // message as soon as connectivity actually changes, not just on next visit.
   window.addEventListener('online', buildArtistsList);
