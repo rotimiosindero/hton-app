@@ -673,7 +673,7 @@ const ARTIST_DATA = {
   "Wayne Holland": {
     "description": "London DJ and Not an Animal Records resident at the Lion & Lamb, a regular at Berlin's Renate and a familiar face on UK festival lineups including Gottwood, Love International and Houghton."
   },
-  "Prince Fatty, Horesman, Lian Bailey, Ignition High Power & Mr Williamz": {
+  "Prince Fatty, Horseman, Liam Bailey, Ignition High Power & Mr Williamz": {
     "description": "Prince Fatty (Mike Pelanconi) is a London dub and reggae producer known for warm, analogue mixing in the King Tubby tradition; here he fronts a full soundsystem show alongside singer Horseman, vocalists Liam Bailey and Mr Williamz, and the Ignition High Power crew.",
     "soundcloudUrl": "https://soundcloud.com/mrbongo/prince-fatty-supersize-launch",
     "soundcloudEmbed": "<iframe width=\"100%\" height=\"400\" scrolling=\"no\" frameborder=\"no\" allow=\"autoplay; encrypted-media\" src=\"https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F75997522&show_artwork=true\"></iframe>"
@@ -820,7 +820,6 @@ const ARTIST_DATA = {
 // there — it isn't in a flat artist directory).
 const ARTIST_ALIASES = {
   'Decius Live': 'Decius',
-  'Cameron': 'Cameron Cullen',
   'Craig Richards (Electro Set)': 'Craig Richards',
   'Craig Richards (Reggae Set)': 'Craig Richards',
   'Al Wootton (DJ Set)': 'Al Wootton',
@@ -901,7 +900,7 @@ const ARTIST_EXCLUDE = [
   'Soundbath',
   'Soundbath with Michelle Cade',
   'Soundbath with Veronika',
-  'Thai Masage workshop with Paul Brum',
+  'Thai Massage workshop with Paul Brumwell',
   'TBC',
   'Yamuna Body Rolling',
   'Yamuna Body Rolling with Gemma Nash',

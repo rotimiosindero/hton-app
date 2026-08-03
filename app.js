@@ -164,7 +164,7 @@
 
   // Keep in sync with CACHE_NAME in sw.js — there's no build step to share a
   // single source of truth, so this just gets bumped alongside it by hand.
-  const APP_VERSION = '1.2.1';
+  const APP_VERSION = '1.2.2';
 
   // Tracks which top-level view is showing, so the title button (goToNow)
   // and the now-line know whether "now" means the main grid or My Hton's
@@ -248,31 +248,42 @@
     document.getElementById('appVersionLabel').textContent = APP_VERSION;
   }
 
-  function scrollGridToNow(gridScrollEl){
+  // behavior is 'smooth' for a user-initiated jump (tapping the title), but
+  // 'auto' at boot: a smooth scroll is rAF-driven, so it never advances while
+  // the page is hidden and freezes wherever it got to — a PWA restored into the
+  // background would open stuck partway between Thursday and now.
+  function scrollGridToNow(gridScrollEl, behavior = 'smooth'){
     const nowMin = nowGlobalMin();
     if(nowMin === null){
       setDetail('Outside the festival dates — showing the start of Thursday');
-      gridScrollEl.scrollTo({left: 0, behavior:'smooth'});
+      gridScrollEl.scrollTo({left: 0, behavior});
       return;
     }
     const targetX = hourToX(nowMin/60) + labelW();
-    gridScrollEl.scrollTo({left: Math.max(targetX - 120, 0), behavior:'smooth'});
+    gridScrollEl.scrollTo({left: Math.max(targetX - 120, 0), behavior});
+    // The day tab is normally kept in step by the scroll listener, but a
+    // programmatic scroll does not reliably emit 'scroll' (it doesn't while the
+    // page is hidden), which left a mid-festival launch scrolled to Saturday
+    // with "Thursday" still highlighted. Set it from where we just scrolled to.
+    setActiveDayTab(dayAtScrollLeft(targetX - labelW()));
   }
 
-  function goToNow(){
+  function goToNow(behavior = 'smooth'){
     if(currentView === 'schedule'){
       showScheduleView();
       applyScheduleMode('timetable');
       try{ localStorage.setItem(SCHEDULE_MODE_KEY, 'timetable'); }
       catch(err){ console.error('Could not save schedule view preference', err); }
-      scrollGridToNow(document.getElementById('scheduleGridScroll'));
+      scrollGridToNow(document.getElementById('scheduleGridScroll'), behavior);
     } else {
       showGridView();
-      scrollGridToNow(document.getElementById('gridScroll'));
+      scrollGridToNow(document.getElementById('gridScroll'), behavior);
     }
   }
 
-  document.getElementById('pageTitle').addEventListener('click', goToNow);
+  // Wrapped, not passed directly: a click handler receives the event object as
+  // its first argument, which would land in `behavior` and break scrollTo.
+  document.getElementById('pageTitle').addEventListener('click', ()=> goToNow());
 
   const dayTabButtons = {};
 
@@ -976,17 +987,22 @@
     searchMatchIndex = 0;
 
     if(searchTerm){
+      // setDetail() writes innerHTML, and searchTerm is whatever the user
+      // typed — echoing it back raw let a pasted "<img onerror=...>" actually
+      // run. Escape it here rather than at the input, so the real term is
+      // still what gets matched against.
+      const termHtml = escapeHtml(searchTerm);
       if(totalMatches){
         const navHtml = searchMatches.length > 1
           ? ` <span class="search-nav"><button type="button" id="searchPrevBtn" aria-label="Previous match">&lsaquo;</button><span id="searchNavLabel">1/${searchMatches.length}</span><button type="button" id="searchNextBtn" aria-label="Next match">&rsaquo;</button></span>`
           : '';
-        setDetail(`${totalMatches} match${totalMatches===1?'':'es'} for "${searchTerm}" across the weekend${navHtml}`);
+        setDetail(`${totalMatches} match${totalMatches===1?'':'es'} for "${termHtml}" across the weekend${navHtml}`);
         if(searchMatches.length > 1){
           document.getElementById('searchPrevBtn').onclick = ()=> goToSearchMatch(searchMatchIndex-1);
           document.getElementById('searchNextBtn').onclick = ()=> goToSearchMatch(searchMatchIndex+1);
         }
       } else {
-        setDetail(`No matches for "${searchTerm}"`);
+        setDetail(`No matches for "${termHtml}"`);
       }
       if(searchMatches.length) scrollToBlock(searchMatches[0]);
     } else if(document.activeElement !== searchInput){
@@ -1331,7 +1347,30 @@
   renderNowLine();
   render();
   gridScroll.scrollLeft = 0;
-  showAboutView();
+
+  // Landing view. Outside the festival, About is deliberately first: it explains
+  // how the app works and carries the support link, which is the whole point of
+  // someone's first visit. During the festival that stops being true — anyone
+  // opening it on site wants the timetable and their position in it — so the
+  // default swaps over for the weekend and swaps back afterwards, with nothing
+  // to push or remember on the day.
+  //
+  // Both are [year, month(0-based), day, hour, minute], the same shape as
+  // FESTIVAL_DATES and whatsnew.js's hideAfter. The end is Monday 09:00 rather
+  // than when the last set finishes, so anyone still up through Sunday night's
+  // overnight sets keeps landing on the grid — 09:00 is also exactly when
+  // nowGlobalMin() stops resolving to a festival day, so the grid loses its
+  // "now" position at the same moment it stops being the useful landing view.
+  // Left unchanged for a future year these simply both fall in the past, and
+  // the app quietly goes back to always landing on About.
+  const GRID_FIRST_FROM  = [2026, 7, 6, 9, 0];    // Thu 6 Aug 2026, 09:00 local
+  const GRID_FIRST_UNTIL = [2026, 7, 10, 9, 0];   // Mon 10 Aug 2026, 09:00 local
+  function gridFirst(){
+    const at = ([y, mo, d, h, mi]) => new Date(y, mo, d, h, mi);
+    const now = new Date();
+    return now >= at(GRID_FIRST_FROM) && now < at(GRID_FIRST_UNTIL);
+  }
+  if(gridFirst()) goToNow('auto'); else showAboutView();
 
   setInterval(renderNowLine, 30000);
   window.addEventListener('resize', renderNowLine);
